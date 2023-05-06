@@ -1,0 +1,30 @@
+% Copyright 2023 Kieran W Harvie. All rights reserved.
+\documentclass[12pt]{report}
+
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{amssymb}
+ 
+\usepackage[OT2,T1]{fontenc}
+
+\titleformat{\chapter}[display]
+	{\normalfont\huge\bfseries}{}{0pt}{\Huge}
+\titlespacing*{\chapter}
+	{0pt}{10pt}{40pt}
+
+\title{Application of the Rjindael Field to Hashing}
+\date{Copyright \textcopyright  \today. All Rights Reserved.}
+\author{Kieran Harvie}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\include{chapters/introduction.tex}
+\include{chapters/matrix.tex}
+\include{chapters/polynomial.tex}
+
+\renewcommand{\thechapter}{A}
+\include{chapters/appendix.tex}
+\end{document}

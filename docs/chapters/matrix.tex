@@ -1,11 +1,189 @@
 % Copyright 2023 Kieran W Harvie. All rights reserved.
 
 \chapter{Matrix Methods}
-A matrix is actually defined as field
+From an abstract algebra a matrix is actually a type of tensor as field[
 it the underlying object is just a ring it's called a module.
-\section{Gaussian Elmination}
-Just a breif discription.
+Say how walking through a $3\times 3$ examples is useful to show only field operations is used.
+set spell not working?
 
+MAKE SURE TO USE THE APPENDIX!!
+
+\section{Gaussian Elimination}
+\subsection{(pointlessly) Abstract Algebra Preamble}
+From an abstract algebra viewpoint,
+the choice of dual space basis is arbitrary provided they have the right span.
+We can get such a new dual basis $\mathbf{e'_i}$ from an old basis $\mathbf{e_j}$, provided $T$ is non-singular, through:
+\[\mathbf{e'_i} = T(\{\mathbf{e_j}\})\]
+So we can transform relationship between the coefficients of tensors in one basis it to another,
+and if $T$ is affine then the new coefficients are directly transformed through $T$.
+\\
+
+Three particular choices of $T$ are swapping two the basis elements,
+multiplying a basis element by a non-zero constant,
+and adding a multiple of basis element index to another.
+
+\subsection{(useful) Matrix Preamble}
+Abstract tensor analysis is cool,
+for the type of people that like that type of thing,
+but the useful result of the previous subsection is that for matrices $a$, $b$, and $M$, plus an invertible matrix $T$ we have:
+\[ M^j_ia^i = b^i \Leftrightarrow\, T^j_kM^k_ia^i = T^j_kb^k \]
+(And this result can be verified directly by multiplying by $T$ or $T^{-1}$ and short-circuiting the previous preamble).
+\\
+
+Bellow are examples of the three previous particualr choices of $T$,
+hence forth referred to as elementary row operations,
+for $3\times 3$ matrices:
+\begin{equation*}
+\begin{aligned}
+\begin{bmatrix}
+	1&0&0 \\
+	0&0&1 \\
+	0&1&0 \\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix}
+=&
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{31} & m_{32} & m_{33} \\
+	m_{21} & m_{22} & m_{23} \\
+\end{bmatrix} \\
+\begin{bmatrix}
+	1&0&0 \\
+	0&a&0 \\
+	0&0&1 \\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix}
+=&
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	am_{21} & am_{22} & am_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix} \\
+\begin{bmatrix}
+	1&0&0 \\
+	0&1&0 \\
+	0&a&1 \\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix}
+=&
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31}+am_{21} & m_{32}+am_{22} & m_{33}+am_{23} \\
+\end{bmatrix} \\
+\end{aligned}
+\end{equation*}
+
+Since these elementary row operations can be represented through matrices their composition can be represented through matrix multiplication.
+Hence we can build more complex row operations from multiplying a chain of elementary row operations together.
+\\
+
+For example say we want a transform $T$ that takes the a $3\times 3$ matrix and makes it first column $[1,0,0]$.
+Assuming $m_{1n} \neq 0$, we have:
+\begin{equation*}
+\begin{aligned}
+\begin{bmatrix}
+	m_{11}^{-1}&0&0 \\
+	0&m_{22}^{-1}&0 \\
+	0&0&m_{33}^{-1} \\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix}
+=&
+\begin{bmatrix}
+	1 & m_{12}m_{11}^{-1} & m_{13}m_{11}^{-1} \\
+	1 & m_{22}m_{12}^{-1} & m_{23}m_{12}^{-1} \\
+	1 & m_{32} m_{32}^{-1}& m_{33} m_{31}^{-1} \\
+\end{bmatrix} \\
+\begin{bmatrix}
+	1&0&0 \\
+	-1&1&0 \\
+	-1&0&1 \\
+\end{bmatrix}
+\begin{bmatrix}
+	1 & m_{12}m_{11}^{-1} & m_{13}m_{11}^{-1} \\
+	1 & m_{22}m_{12}^{-1} & m_{23}m_{12}^{-1} \\
+	1 & m_{32} m_{32}^{-1}& m_{33} m_{31}^{-1} \\
+\end{bmatrix} 
+=&
+\begin{bmatrix}
+	1 & m_{12}m_{11}^{-1} & m_{13}m_{11}^{-1} \\
+	0 & m_{22}m_{12}^{-1}-m_{12}m_{11}^{-1} & m_{23}m_{12}^{-1} -m_{13}m_{11}^{-1}\\
+	0 & m_{32} m_{32}^{-1}-m_{12}m_{11}^{-1}& m_{23} m_{31}^{-1} -m_{13}m_{11}^{-1}\\
+\end{bmatrix} \\
+\end{aligned}
+\end{equation*}
+Hence:
+\[T =
+\begin{bmatrix}
+	1&0&0 \\
+	-1&1&0 \\
+	-1&0&1 \\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{11}^{-1}&0&0 \\
+	0&m_{22}^{-1}&0 \\
+	0&0&m_{33}^{-1} \\
+\end{bmatrix}
+\]
+\\
+
+Gaussian Elimination is simply using this process to find a matrix $T$ such that $T(M) = I$ by interatvly zeroing the outer, non-diagonal, elments:
+\[
+\begin{bmatrix}
+	m_{11} & m_{12} & m_{13} \\
+	m_{21} & m_{22} & m_{23} \\
+	m_{31} & m_{32} & m_{33} \\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	1&0&0\\
+	0 & m'_{22} & m'_{23} \\
+	0 & m'_{32} & m'_{33} \\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	1&0&0\\
+	0 & 1 & 0 \\
+	0 & 0 & m''_{33} \\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	1&0&0\\
+	0 & 1 & 0 \\
+	0 & 0 & 1 \\
+\end{bmatrix}
+\]
+This calculates $M^{-1}$ as the product of matrices representing elemetry row operations.
+Note that this always works when $M$ is invertable, adafsd 
+but we may need to swap row such that errent zeros put directly into their destination to avoid dividing by zero.
+
+Rrwrite to bring in the opening.
+Jordan normal form??
+
+\subsection{The Algorithm}
+Matrices can easliy be represented as 2d-arrays,
+elemetry row operations aren't hard to implement either,
+and the iterative nature of finall equation directly suggests the structure of the algorith.
+However there is one more observation 
+instead of keeping in memory all the elementry row operation, just directly apply them to the $B$ as we go.
+augmented matrices are exceleent at facilitating this.
 \section{Application to Hashing}
 liner and human names
 $Ma_0 = Ma_1$ for invertable $M$
+preprocesing/ offsetting

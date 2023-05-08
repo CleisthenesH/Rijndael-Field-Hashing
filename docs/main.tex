@@ -5,7 +5,17 @@
 \usepackage{titlesec}
 \usepackage{hyperref}
 \usepackage{amssymb}
- 
+\usepackage{listings}
+
+\lstset{language=C,frame=single}
+% Example use of the lstlisting environment
+%\begin{lstlisting}
+%int* a = b;
+%\end{lstlisting}
+
+\DeclareMathOperator{\Diag}{Diag}
+\DeclareMathOperator{\hash}{hash}
+
 \usepackage[OT2,T1]{fontenc}
 
 \titleformat{\chapter}[display]
@@ -24,6 +34,7 @@
 \include{chapters/introduction.tex}
 \include{chapters/matrix.tex}
 \include{chapters/polynomial.tex}
+\include{chapters/AES.tex}
 
 \renewcommand{\thechapter}{A}
 \include{chapters/appendix.tex}

@@ -2,3 +2,88 @@
 
 \chapter{Appendix}
 \section{Generator Table}
+\section{Side-Channel}
+\label{appx:side-channel}
+I've said in a few places that using generators to simplify field arithmetic makes the implementation susceptible to side-channel attacks.
+But how?
+And what is a side-channel attack?
+\\
+
+A side-channel is something about the implementation of an algorithm or protocol that lets an attacker get information,
+rather than something inherently wrong with the algorithm or protocol itself. 
+\\
+
+The easiest to explain side-channel is the timing.
+Consider a guarded door and to get access you have to tell the guard a password.
+You tell the guard two different incorrect passwords but the guard rejects one immediately but waits till you're half way through for the second one.
+You might reasonably conclude that first password is wholly wrong but that the first half of the second one is correct.
+By doing this enough times and keeping track of the time the guard rejects the password you can probably figure out the password.
+You guessing the password has nothing to do with the cryptography of a password but the implementation by the guard,
+instead they should have waited till you've said the whole password before rejecting it, 
+and hence is a side-channel attack.
+\\
+
+Using a look-up table to compute field operations opens you up to a caching side-channel attack.
+\\
+
+Because the look-up table is to large to be stored in the CPU registers it will be accessed from memory.
+Accessing the table from memory means it's likely to be cashed.
+The table being cached means someone with the ability to monitor cache access can see what field elements you're using,
+and maybe work backwards to get some of the string key that was hashed.
+Hence leaking the string.
+\\
+
+This makes using look-up tables unsuitable for application where the string keys are sensitive information.
+\\
+
+Before closing this topic I want to bring up that side-channels can include the physical properties of computers as well.
+Consider a naïve attempt at stopping a timing attack where the guard waits to reject the password but is still noticeably paying less attention.
+An attacker can still guess the timing from when the guard stops paying attention.
+Similarly idling a computer till a set amount of time passes for all password validation attempts might cause a change in power consumption or a noticeable reduction in cooling. 
+Hence even power-draw or acoustic properties of a computer are possible side-channels for attacks.
+
+\section{Matrix Arithmetic}
+\subsection{Diagonalization}
+The description of Gaussian Elimination and the claim that it works with any invertible matrix may make some readers that half remember a linear algebra course nervous.
+This is because process described is similar to another process, diagonalization, which is not guaranteed to work just because the input matrix is invertible.
+\\
+
+A diagonal matrix is one where all non-diagonal elements are zero and transcribed as $\Diag$:
+\[\begin{bmatrix}1&0&0&0\\0&3&0&0\\0&0&2&0\\0&0&0&7\end{bmatrix} = \Diag(1,3,2,7)\]
+Such matrices are important they are the same as the matrix for the elementary row operation of scaling the rows,
+making matrix multiplication invoking them conceptually and computationally easy.
+For example:
+\[\Diag(a_0,a_1,\dots a_n)\Diag(b_0,b_1,\dots b_n) = \Diag(a_0b_0,a_1b_1,\dots a_nb_n)\]
+\\
+
+Diagonalization is the process of taking a matrix $M$ and finding a diagonal matrix $D$ and invertible matrix $P$ such that:
+\footnote{Often equivalently written as $M = PDP^{-1}$}
+\[MP = PD\]
+And this process is important because it enables the simplification of calculations by canceling $P$'s and utilizing diagonal matrix multiplication:
+\begin{equation*}
+\begin{aligned}
+ M^3 =& (PDP^{-1})^3 \\
+ =& (PDP^{-1})(PDP^{-1})(PDP^{-1}) \\
+ =& PD(P^{-1} P)D(P^{-1} P)DP^{-1} \\
+ =& PD^3P^{-1} \\
+ =& P\Diag(a_k)^3P^{-1} \\
+ =& P\Diag(a_k^3)P^{-1} \\
+\end{aligned}
+\end{equation*}
+\\
+
+But unfortunately diagonalization isn't guaranteed for invertible matrices.
+The conditions of when it works involves something called eigenvalues,
+which are outside the scope of this document.
+But what is concerning is how similar this looks to Gaussian Elimination,
+which given $MA =B$ involves finding an invertible $P$ such that:
+\[M'A =PMA = PB\]
+Where $M'$ is $M$ after some elementary row operations.
+What is important to notice is that in diagonalization $P$ is on the right side of $M$ and the left side of $D$.
+But during Gaussian Elimination $P$ is on the left side of both $M$ and $B$.
+Since matrix multiplication isn't commutative this makes the processes very different and lays nerves to rest. 
+\\
+
+Readers interesting in learning more about diagonalization and it's uses are encouraged to first loop up eigenvalues and then "The Jordan Normal Form".
+
+\section{Polynomial Arithmetic}

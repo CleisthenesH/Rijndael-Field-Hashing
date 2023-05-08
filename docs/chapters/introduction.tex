@@ -2,11 +2,83 @@
 
 \chapter{Introduction}
 General introduction
-This is an acompanying document to the repository.
+This is an accompanying document to the repository.
+
+It is meant to approachable to someone that has freshman understand of math or programing,
+and hopefully work as an instruction to the other.
+
+And maybe even an ambassador for abstract algebra and cryptography for people that are interested in those things but need practical applications to make them stick.
+
+\section{Structure of the Repository}
+
+\section{Hashing 101}
+For our purposes a hash function is an any function that inputs a string and outputs a number.
+The most direct example is converting the first character to it alphabetical number (A=$1$, B=$2$, etc.):
+\[\hash(\text{Apple}) = 1,\quad \hash(\text{Orange}) = 15\]
+
+There are two main applications for hashing:
+The first is performance,
+as operations on strings may be more expensive then on numbers so an efficient and well designed hash may allow us to work better on the numbers instead. 
+The second is cryptography,
+that is the practice of communicating secrets,
+where we want to hash the string and communicate the number in hopes of keeping the string secrete.
+\\
+
+There is a clear tension between these two applications.
+For performance you'd want as much information about the initial string easily assessable in the hash.
+But for cryptography you'd want as much information hidden as possible while still allowing communication. 
+\\
+
+This document aims to serve as an introduction,
+so wont optimize for either application,
+but I bring them up this early to wet the readers appetite about why they might care about hashing.
+{\textbf{ But also to state that the reader should not apply any algorithm here for cryptographic purposes without consulting a professional first.}}
+At least one technique used makes the algorithm susceptible to a \hyperref[appx:side-channel]{side-channel attack},
+and even if I avoided that technique there would be another one I'm ignorant of.
+
+\subsection{Hashing Terminology}
+With applications and warning asides there are some more things the reader should know.
+First is that in common use the term hash can mean both the hash function and the resulting number from that function.
+
+Secondly there are four general terms worth knowing:
+
+{\textbf{Collision:}} 
+A collision is when two strings have the same hash.
+This is broadly undesirable since any operation we want to preform on the hash has to work for both strings.
+
+{\textbf{Hash Table:}}
+A common application of hash functions in environments where accessing a look-up table with string keys are inefficient compared to number keys.
+We basically make a look-up table with number keys and when asked to look-up a string key we hash it first and use the result as the integer key.
+This will require us to deal with collisions as they come up.
+
+{\textbf{Perfect Hash Function:}}
+A perfect hash for a given set of strings is hash function where none of strings collide.
+
+{\textbf{Minimal Perfect Hash Function:}}
+A minimal perfect hash for a given set is a perfect hash function where all outputs of the string are less then or equal to the size of the set.
+In terms of features,
+but not necessarily performance,
+this is the ideal hash function as there are no collisions to deal with and no wasted numbers taking up space.
 
 \section{Field Theory 101}
 Rational numbers
 finite fields
+define the term "field operations"
+MAKE SURE TO USE THE APPENDIX!!
+
+\subsection{Finite Fields}
+history of Galois (wasn't understood in his time not helped by his duel)
+prime powers
+unique
+polynomials
+
+To understand why prime numbers might be imporant consider the following:
+Assume there is $x$ such that $px=1 \mod pq$ then we have $x < q$ else we set $x -= q$ till its true.
+But $x < q$ implies $px < pq$ meaning we never have to take a remainder hence $px = 1$ but $p>1$ and $x>1$ means $px> 1$ a contraction.
+
+This type of argument can be use to prove a Bézout's identity
 
 \section{The Rijndael Field}
 notation and generators 
+
+you can ignore all this theory and just have two operation on bytes that 

@@ -1,6 +1,48 @@
 % Copyright 2023 Kieran W Harvie. All rights reserved.
 
 \chapter{Appendix}
+\section{Adjoining a Number to a Field}
+\label{appx:adjoining}
+TODO: clean up and probably add an appendix for Bézout's identity and the notation $F[X]$.
+When adjoining a number $a$ to field $F$ there are two steps:
+\begin{enumerate}
+\item Making a set which includes all the elements of $F$ as well as $a$.
+\item Making sure the all the field axioms still apply to the new set.
+\end{enumerate}
+While it easy to make sure addition, subtraction, and multiplication work by defining a new set which is the sum of powers of $a$ times elements in $F$:
+\[\left\{\sum_n f_na^n\, |\, f_n \in F\right\}\]
+But what about reciprocation? 
+\\
+
+Well for this discussion we have two similar but distinct notations:
+\begin{enumerate}
+	\item $F[a]$ is the ring\footnote{An algebraic structure that is a field without reciprocation} with the set defined as above.
+	\item $F(a)$ the minimal field that includes the element $a$ and the subfield $F$.
+\end{enumerate}
+
+These objects aren't necessarily the same.
+Consider a number $a$ that isn't the solution of some polynomial in $F$.
+(I state, without proof, that this is the case $a=\pi$ and $F=\mathbb{Q}$).
+Then $F(a) \neq F[a]$ because $a^{-1}  \not \in F$.
+\\
+
+Now consider the case where $a$ is the solution of some polynomial over $F$.\footnote{This property is called $a$ being algebraic over $F$}
+Without lost of generality let $f$ be the minimal polynomial such that $f(a)=0$.
+Let $g$ be a different polynomial in $F[X]$
+By the minimality of $f$ either $g(a)=0$ or $f$ and $g$ are relatively prime.
+If $g(a)=0$ then $g=0$ in $F[a]$ meaning it doesn't need a reciprocal,
+hence $f$ and $g$ are relatively prime,
+and hence from Bézout's identity we have polynomial $r$,$s$ in $F[X]$ such that:
+\[f(x)r(x)+g(x)s(x) = 1\]
+But when we substitute in $a$ we have:
+\[g(a)s(a) = 1\]
+Hence $g$ has a reciprocal in $F[a]$ and hence $F[a] = F(a)$
+\\
+
+In practice a lot of numbers adjoined to a field are defined as roots of polynomials it is often the case that $F[a] = F(a)$.
+
+%TODO: make possessive s joke
+
 \section{Generator Table}
 \section{Side-Channel}
 \label{appx:side-channel}

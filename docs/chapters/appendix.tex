@@ -1,6 +1,279 @@
 % Copyright 2023 Kieran W Harvie. All rights reserved.
 
 \chapter{Appendix}
+\section{Ring Theory 101}
+A ring is an algebraic structure that acts like matrix arithmetic.
+This means you can add, subtract, and multiply matrices as you would expect.
+But you can't necessarily divide or change the order or multiplication. 
+
+For some quick examples consider the following matrices:
+\[
+A = \begin{bmatrix}
+	1&1\\
+	0&1\\
+\end{bmatrix}
+,B = \begin{bmatrix}
+	1&0\\
+	1&1\\
+\end{bmatrix}
+,C = \begin{bmatrix}
+	1&0\\
+	0&0\\
+\end{bmatrix}
+\]
+You can add the matrices:
+\[
+A+B = B+A =
+\begin{bmatrix}
+	2&1\\
+	1&2\\
+\end{bmatrix}
+\]
+Negate the matrices:
+\[
+-A = \begin{bmatrix}
+	-1&-1\\
+	0&-1\\
+\end{bmatrix}
+\]
+And multiply matrices:
+\[
+C(A+B) = CA+CB = 
+\begin{bmatrix}
+	2&1\\
+	0&0\\
+\end{bmatrix}
+\]
+However the order of multiplication matter:
+\[
+AB = 
+\begin{bmatrix}
+	1&1\\
+	0&1\\
+\end{bmatrix}
+\begin{bmatrix}
+	1&0\\
+	1&1\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	1&1\\
+	2&1\\
+\end{bmatrix}
+\]
+\[
+BA =
+\begin{bmatrix}
+	1&0\\
+	1&1\\
+\end{bmatrix}
+\begin{bmatrix}
+	1&1\\
+	0&1\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	2&1\\
+	1&0\\
+\end{bmatrix}
+\]
+And not every matrix is guaranteed an inverse (meaning you can't divide by it):
+\[
+\det C = \begin{vmatrix}
+	1&0\\
+	0&0\\
+\end{vmatrix} = 0
+\]
+
+So when talking about fields why do we care about rings?
+Firstly all field are rings,
+even though division is not guaranteed in rings they don't forbid it,
+so understanding rings helps us understand fields.
+But secondly,
+because rings are more general then fields they can act as stepping stones.
+If we want to show something is a field we can show that it's a ring and then use our knowledge of rings to do the last two steps to show it's a field.
+\\
+
+This reason is also why Ring Theory 101 is in the appendix, 
+most casual readers will be OK assuming or deducing for themselves how division works.
+In this case just skip using rings as a stepping stone.
+
+\subsection{Commutative Rings}
+As already shown the order of multiplication may matter in rings.
+Rings where order doesn't matter,
+i.e. $AB = BA$,
+are called commutative.
+Commutative Rings are algebraic structures that act like integers.
+Where you can add, subtract, and multiply how would expect but still can't divide.
+\\
+
+Importantly, because fields are commutative and rings all fields are also commutative rings.
+\\
+
+Thinking about commutative rings as integers way will help with the coming sections, 
+but the term commutative is used all over mathematics in general and abstract algebra in particular and is worth committing to memory.
+
+\subsection{Polynomial Rings}
+Given a commutative ring $R$ we define define the ring of polynomials with coefficients in $R$ as $R[X]$\footnote{Also called polynomials {\bf over} $R$.}.
+For example consider the commutative ring of integers $\mathbb{Z}$ then:
+\[ \{1+2X,X^2,7\} \subset \mathbb{Z}[X]\]
+These polynomials can be "formal" meaning we don't necessarily want or need to substitute in a value for $X$.
+All we really care about is the relationship between coefficients,
+for example that:
+\[(a_0+a_1X)(b_0+b_1X) = a_0b_0 + (a_1b_0+a_0b_1)X+a_1b_1X^2\]
+
+This "formal" view also shows why we need $R$ to be commutative,
+since if $R$ is not commutative then we will get some annoying non terms when multiplying polynomials,
+for example:
+\[(aX)(bX) = aXbX \]
+Which doesn't necessarily equal $abX^2$ when $R$ isn't commutative.
+
+\subsubsection{Quotient Polynomial Rings}
+\label{appx:quotient-polynomial-ring}
+We have already implicitly used the concept of a quotient ring when defining the \hyperref[intro:gf5]{ring of numbers less than 5.}
+But to say it explicitly we take a ring,
+$\mathbb{Z}$,
+and a set within the ring, 
+multiples of $5$, 
+and say two numbers of the original ring are equal if and only if their difference is in the set.
+Also written as the elements being equal {\bf congruent} the set.
+\\
+
+For example:
+The elements $2$ and $7$ of $\mathbb{Z}$ are equal congruent the multiples of $5$,
+often shortened "congruent $5$" or just "congruent" if the set is obvious from context.
+\\
+
+This process only produces a ring when the set follows certain properties,
+called being a "two-sided ideal",
+which are outside the scope of this document.
+But all the multiples of a given element are often "two-sided ideals".
+\\
+
+This idea also works for polynomial rings.
+Consider the quotient ring of $\mathbb{Z}[X]$ modulo $X^2-2$,
+detonated $\mathbb{Z}[X] / (X^2-2)$.
+The elements $X^3$ and $2X$ and congruent since:
+\[X^3 = 2X + X(X^2-2)\]
+From this example you may have observed two things:
+\begin{itemize}
+	\item[1] All the elements of $\mathbb{Z}[X] / (X^2 -2)$ are congruent some degree $1$ or lower polynomial.
+	\item[2] $X^2$ is congruent to $2$.
+\end{itemize}
+So every element of $\mathbb{Z}[X] / (X^2 - 2)$ can be thought as equaling:
+\[ a+bX \text{ where $a$ and $b$ are integers and } X^2 = 2\]
+Meaning we took $\mathbb{Z}$ and adjoined $\sqrt{2}$, the root of $X^2-2$, to it.
+
+And this observation is mostly correct,
+and a big reason as to why we care about Polynomial Rings when talking about Fields.
+Firstly the only thing the observation missed is that we could have equally adjoined $-\sqrt{2}$ to $\mathbb{Z}$.
+This redundancy is related to the symmetries of $X^2-2$,
+and is studied in depth in Galois theory,
+but means we can only say we adjoined {\bf a} root of $X^2-2$ not which one.
+
+Secondly the ability to adjoin a new element to a field through quotient polynomial rings will be necessary to understand the Rijndael Field.
+But we need one more tool for figuring out when the elements of quotient polynomial rings have reciprocals.
+
+\subsection{Bézout's Identity and Domains}
+One of the most useful tools in showing a Ring is a Field is Bézout's Identity.
+Before stating the more general form, consider Bézout's Identity for integers:
+\begin{displayquote}
+Let $x$ and $y$ be integers with the greatest common divisor $d$.
+Then for all integers $r$ and $s$ there exists $k$ such that:
+	\[xr+ys=kd\]
+Furthermore,
+there exists integers $r'$ and $s'$ such that $k=1$, i.e.:
+	\[xr'+ys'=d\]
+\end{displayquote}
+
+\subsubsection{Water Pouring Puzzle}
+It can be helpful to think in Bézout's Identity in terms of Water Pouring Puzzles.
+For those unfamiliar with these puzzles,
+you are given jugs of known sizes and are asked to figure out a sequence of has a specific amount of water at the end.
+For example, you are given a 2L and 3L jugs and are ask to produce 1L of water.
+You could fill the 3L jug then pour into the 2L jug until it's full, then discard the 2L, leaving 1L in the original jug. 
+As required.
+\\
+
+Bézout's Identity says that the water in the jugs must always be a multiple of the greatest common divisor of the jugs.
+For example if you had a 4L and 6L jug then the water in the jugs is always a multiple of 2L.
+Why?
+Because we only have the capacity to manipulate water in multiples of 2L,
+so after all steps we still have multiples of 2L left.
+\\
+
+Bézout's Identity goes on to say that that there alway exits a sequence of moves that get us to the greatest common divisor of water.
+This isn't as intuitive to see as the previous statement,
+but see that you can remove multiples of the smaller jug from the larger till less water is left in the larger jug then the volume of the smaller.
+This effectively creates a new smaller jug with which we can repeat this process till the jugs are the same size,
+leaving the greatest common reminder.
+
+\subsubsection{Proving Reciprocation}
+To see how Bézout's Identity might might be useful in showing that elements of a ring have a reciprocal,
+and hence can be divided by,
+\hyperref[intro:gf5]{consider the example given in the introduction about integers less then 5.}
+Constructing a multiplication table only works because $5$ is a small number,
+consider a larger prime like $113$ how do we show that a $18$ has a reciprocal in this set?
+Well since $113$ is prime and $18 < 113$ their greatest common divisor is $1$.
+From Bézout's Identity there must exist numbers $r$ and $s$ such that:
+\[ 113\times r+18\times s = 1\]
+Although not strictly necessary for this argument,
+sufficient $r$ and $s$ can be calculated\footnote{
+	An efficient way to calculate $r$ and $s$ for the general case is called Euclid's Extended Algorithm. 
+	While outside the scope, if you understand this argument you are able to understand the algorithm and I suggest looking it up.} 
+as $-7$ and $44$,
+giving:
+\[ 113\times (-7)+18\times 44 = 1\]
+This can be rewritten as:
+\[18\times 44 = 1+113\times 7\]
+Hence $18\times44$ has remainder $1$ when divided by $113$.
+Making $44$ the reciprocal of $18$ for the ring of integers less than $113$.
+\\
+
+This argument works just as well for all non-zero integers less than $113$ hence all non-zero integers have a reciprocal making this commutative ring a field.
+This argument also for any set of integers less than a prime number, hence all such rings are actually fields.
+\\
+
+A similar argument shows that the ring of integers less than a given number $n$ are fields {\bf only} work for prime number.
+Otherwise there is a number $m$ that's greatest common divisor with $n$, labeled $d$, is greater than $1$.
+And through Bézout's Identity we know that for all $r$ and $s$ we have $k$ such that:
+\[ nr+ms = kd > d > 1\]
+Hence we can't divide by $m$ and the ring isn't a field.
+
+\subsubsection{Application to Polynomial Rings}
+Rings where Bézout's Identity apply are called "Bézout Domains".
+Domains are algebraic structure in-between rings and fields where $ab=0$ implies $a=0$ or $b=0$ and Bézout Domains are a subtype of domain.
+It's outside of scope to detail another type of algebraic structure,
+but it is important to say that Polynomial Rings are a type of Bézout Domain.
+\\
+
+This means we can prove reciprocation in a Quotient Polynomial Rings in the same way we did with integers.
+Consider $\mathbb{Q}[X]/(X^2-2)$ from \hyperref[appx:quotient-polynomial-ring]{earlier discussion} we know this ring is like taking $\mathbb{Q}$ and adjoining $\pm\sqrt{2}$ to it.
+But $\mathbb{Q}$ is a field and not a ring!
+Surly we should be able to recover division after adjoining $\pm\sqrt{2}$.
+\\
+
+Proof:
+If $x$ is the root of a degree $1$ or less polynomial in $\mathbb{Q}[X]$ then $x$ is rational since:
+\[ ax+b = 0 \rightarrow x = -\frac{b}{a}\]
+Hence $X^2-2$ is relatively prime to all elements of $\mathbb{Q}[X]$ of degree $1$ or less since all roots of $X^2-2$ are irrational.
+From Bézout's Identity this means that for any degree $1$ or lower element $p$ of $\mathbb{Q}[X]$ we can find elements $r(X)$ and $s(X)$ of $\mathbb{Q}[X]$ such that:
+\[(X^2-2)r(X)+p(X)s(X) = 1\]
+Meaning every element of $\mathbb{Q}[X]$ of degree $1$ or less can be reciprocated.
+And since $X^2$ is degree $2$ every element of $\mathbb{Q}[X]/(X^2-1)$ is congruent to an element of degree $1$ or less.
+Hence every element of $\mathbb{Q}[X] / (X^2 - 2)$ is invertible,
+making it a field.
+
+\subsection{Conclusion}
+Being an appendix the main goal of Ring Theory 101 is to communicate key ideas around rings for the main text.
+These ideas are:
+\begin{itemize}
+	\item Rings are more general fields where order of multiplication can matter but without division.
+	\item Rings where order of multiplication doesn't matter are called commuting rings.
+	\item Given a commuting ring $R$ we can make a new ring $R[X]$ of polynomials with coefficients in that ring.
+	\item Bézout's Identity is a great tool for finding out when an element of a ring has a reciprocal.
+	\item Conceptually Quotient Polynomial Rings are like taking the base ring and adjoining a new element to it.
+\end{itemize}
 \section{Adjoining a Number to a Field}
 \label{appx:adjoining}
 TODO: clean up and probably add an appendix for Bézout's identity and the notation $F[X]$.

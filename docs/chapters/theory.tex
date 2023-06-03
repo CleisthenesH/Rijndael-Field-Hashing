@@ -1,0 +1,650 @@
+% Copyright 2023 Kieran W Harvie. All rights reserved.
+
+\chapter{Theory}
+
+\section{Hashing 101}
+For our purposes a hash function is an any function that inputs a string and outputs a number.
+The most direct example is converting the first character to it alphabetical number (A=$1$, B=$2$, etc.):
+\[\hash(\text{Apple}) = 1,\quad \hash(\text{Orange}) = 15\]
+
+There are two main applications for hashing:
+The first is performance,
+as operations on strings may be more expensive then on numbers so an efficient and well designed hash may allow us to work better on the numbers instead. 
+The second is cryptography,
+that is the practice of communicating secrets,
+where we want to hash the string and communicate the number in hopes of keeping the string secrete.
+\\
+
+There is a clear tension between these two applications.
+For performance you'd want as much information about the initial string easily assessable in the hash.
+But for cryptography you'd want as much information hidden as possible while still allowing communication. 
+\\
+
+This document aims to serve as an introduction,
+so wont optimize for either application,
+but I bring them up this early to wet the readers appetite about why they might care about hashing.
+{\textbf{ But also to state that the reader should not apply any algorithm here for cryptographic purposes without consulting a professional first.}}
+At least one technique used makes the algorithm susceptible to a \hyperref[appx:side-channel]{side-channel attack},
+and even if I avoided that technique there would be another one I'm ignorant of.
+
+\subsection{Hashing Terminology}
+With applications and warning asides there are some more things the reader should know.
+First is that in common use the term hash can mean both the hash function and the resulting number from that function.
+
+Secondly there are four general terms worth knowing:
+
+{\textbf{Collision:}} 
+A collision is when two strings have the same hash.
+This is broadly undesirable since any operation we want to preform on the hash has to work for both strings.
+
+{\textbf{Hash Table:}}
+A common application of hash functions in environments where accessing a look-up table with string keys are inefficient compared to number keys.
+We basically make a look-up table with number keys and when asked to look-up a string key we hash it first and use the result as the integer key.
+This will require us to deal with collisions as they come up.
+% A table here would really help the reader understand hashing, but also help break up a wall of text.
+% A picture where the name of fruit is mapped to a type of that fruit, show a collision?
+
+{\textbf{Perfect Hash Function:}}
+A perfect hash for a given set of strings is hash function where none of strings collide.
+
+{\textbf{Minimal Perfect Hash Function:}}
+A minimal perfect hash for a given set is a perfect hash function where all outputs of the string are less then or equal to the size of the set.
+In terms of features,
+but not necessarily performance,
+this is the ideal hash function as there are no collisions to deal with and no wasted numbers taking up space.
+
+\section{Abstract Algebra 101}
+A two sentence summary of Abstract Algebra would be something like:
+
+\begin{displayquote}
+Abstract Algebra is the study of Algebraic Structures.
+
+Algebraic Structures are a set of objects (e.g. Numbers) and operations (e.g. $+,\times,-,\sqrt{\phantom{1}}$) that follow certain axioms (e.g. $a+b = b+a$).
+\end{displayquote}
+
+One thing I want to stress is that from the abstract algebra viewpoint it is taken as an axiom
+that $a+b = b+a$.
+
+While one could make arguments about why $1+2 = 2+1$ in abstract algebra it's just kind of assumed as an axiom in algebraic structures of numbers.
+And we instead focus figuring out what are the logical conclusions of all the assumed axioms.
+\\
+
+The reason this is a useful thing to do is that it enables us reuse arguments for other structures given they have the same axioms used in the argument. 
+Consider a proof of the difference of two squares:
+\begin{equation*}
+\begin{aligned}
+	(a-b)(a+b) =& a(a+b)-b(a+b) \\
+	=& (a^2+ba)+((-b)a+(-b)b) \\
+	=& a^2+(ba+((-b)a)+-b^2 \\
+	=& a^2+a(b+(-b))-b^2 \\
+	=& a^2+a\times 0-b^2 \\
+	=& a^2-b^2 \\
+\end{aligned}
+\end{equation*}
+We can list all the axioms used\footnote{e.g. $a(b+c) = ab+ac$, $ab=ba$, $a+b = b+a$, $0\times a = 0$, $b+(-b) = 0$, $(-b)b = -b^2$, ...} and apply know that the difference of two squares is the natural conclusion of these axioms.
+And hence apply this formula to any algebraic structure that follows the axioms used.
+
+\section{Field Theory 101}
+\begin{displayquote}
+Fields are Algebraic structures that act like the rational numbers $\mathbb{Q}$ (i.e. Fractions with $+,-,\times,\div)$
+\end{displayquote}
+There are a lot of axioms for a field,
+and I don't think listing them all here would be useful.
+Especially when the reader can get the gist with an example.
+\\
+
+\label{intro:gf5}
+Consider multiplication and addition of integers less then $5$ where if the answer is greater than $5$ we divide it by $5$ and take the remainder:
+\[
+\begin{array}{c|ccccc}
+	+& 0 & 1& 2 &3 &4 \\
+	\hline 
+	0&0&1&2&3&4\\
+	1&1&2&3&4&0\\
+	2&2&3&4&0&1\\
+	3&3&4&0&1&2\\
+	4&4&0&1&2&3\\
+\end{array}
+\quad
+\begin{array}{c|ccccc}
+	\times & 0 & 1& 2 &3 &4 \\
+	\hline 
+	0&0&0&0&0&0\\
+	1&0&1&2&3&4\\
+	2&0&2&4&1&3\\
+	3&0&3&1&4&2\\
+	4&0&4&3&2&1\\
+\end{array}
+\]
+Here are some interesting properties of these tables:
+\begin{itemize}
+	\item They are mirrored around the diagonal. Meaning $a+b = b+a$ and $ab = ba$.
+	\item The number $0$ has the properties $0+a = a$ and $0\times a = 0$.
+	\item The number $1$ has the property $1a = a$.
+	\item For every number $a$ there is a unique number $b$ such that $a+b = 0$. (Meaning we can define $-a = b$).
+	\item For every nonzero number $a$ there is a unique number $b$ such that $ab = 1$. (Meaning we can define $\frac{1}{a} = b$).
+\end{itemize}
+These fact combined means we can define and manipulate fractions in this structure the same way we would in $\mathbb{Q}$.
+(Using $\frac{a}{b} = a\times\frac{1}{b}$ as needed).
+These operations (Addition, Multiplication, Negation, and Reciprocation) are called the field operations and the fact we can do all of them makes "Integers less then $5$ where we can take the remainder of any operation"\footnote{For reasons that will become clear later this structure is called $GF(5)$} a field.
+\\
+
+I said one of the benefits of abstract algebra is the reuse of arguments where the axioms still apply.
+So lets test this by applying the difference of squares proof from the previous section to $2$ and $4$:
+\[4^2-2^2 = 1 - 4 = -3 = 2\]
+and 
+\[(4-2)(4+2) = 2\times1 = 2\]
+Which are equal, as expected.
+\\
+
+It's also worth noting what we can't do in this structure:
+\begin{itemize}
+	\item Square root: Notice that in the $\times$ table diagonal there is no $2$ or $3$ this means we can't meaningfully talk about $\sqrt{2}$ or $\sqrt{3}$.
+	\item Order: Notice that $4+1 = 0$ but that normally we would say $0<4$ however adding $1$ to both sides gives $1<0$.
+\end{itemize}
+
+That's fine because neither of these concepts are part of the field axioms
+and this neutrality is what makes abstract algebra so powerful.
+
+Despite not being part of the field axioms, order makes sense in $\mathbb{Q}$, and square root makes sense for positive numbers in $\mathbb{R}$.
+This is because axioms in abstract algebra only guarantee the structure they are meant to describe and don't prohibit additional structure.
+You can pick and choose axiom and how they interact and take them to their logical conclusions while not having to repeat work what only requires certain subset of the axioms.
+\\
+
+We already implicitly took advantage of this power at the start when we defined field as like $\mathbb{Q}$ but not $\mathbb{R}$.
+Operations like square roots working for all positive integers aren't going to be important for our hashing application so we are using a field to work because that's all we need.
+
+\subsection{Constructing Fields}
+To really use the full potency of Field Theory,
+and eventually use the Rijndael field,
+we need to move past describing fields that we already know and move to constructing new fields.
+\\
+
+The most obvious way to construct a field is to take an existing field $F$ and add another number $a$ to it while doing whatever is necessary to make sure the field axioms still apply.
+This process is called the adjoining of $a$ to $F$.
+\\
+
+As \hyperref[intro:gf5]{observed earlier} there is no $\sqrt{3}$ in the field $F$ of integers remainder $5$.
+\\
+
+What if we define a new set $G$ such that:
+\[G = \left\{a+b\sqrt{3}\,|\,a,b\in [0,4]\right\}\]
+With addition, multiplication, and negation working as expected (taking the remainder as needed):
+\begin{equation*}
+\begin{aligned}
+	(a_0+b_0\sqrt{3})+(a_1+b_1\sqrt{3}) =& (a_0+a_1)+(b_0+b_1)\sqrt{3} \\
+	(a_0+b_0\sqrt{3})\times (a_1+b_1\sqrt{3}) =& (a_0b_0+3a_1b_1)+(a_0b_1+a_1b_0)\sqrt{3} \\
+	-(a_0+b_0\sqrt{3})=& (-a_0)+(-b_0)\sqrt{3})\\
+\end{aligned}
+\end{equation*}
+And reciprocation defined as:
+\[\frac{1}{a+b\sqrt{3}} = \frac{1}{a^2-3b^2}(a-b\sqrt{3})\]
+
+Hence we have created a new field $G$ that contains $F$ as a subfield, when $b=0$ and includes a square root of $3$ while satisfying of the field axioms.
+\\
+
+\label{intro:galois}
+The theory for constructing new fields was laid by groundbreaking work 19$\text{th}$ mathematician Évariste Galois.
+%Picture here.
+Like much groundbreaking work before and after it wasn't understood in it's time.
+With influential mathematicians like Cauchy rejecting Galois' papers and Poisson calling it "incomprehensible".
+This lack of understanding was not helped when Galois' political activism landed him in jail after the French Revolution of 1850 and upon being release immediately entering a duel and dying.
+\\
+
+Surly such a groundbreaking idea from such a interesting life must be too complex for regular people to understand?
+Well what this groundbreaking work focused on was finding the roots of polynomials,
+something you likely did in high school.
+\\
+
+Because multiplication and addition are field operations given a field $F$ we can define the set of polynomials with coefficients in $F$ as $F[X]$.
+And if $a$ can be written as the solution to a polynomial in $F[X]$ we can create a new field $F(a)$ where the elements of the new field are polynomials in the old field evaluated at $a$, this set is denoted \hyperref[appx:adjoining]{$F[a]$}.
+
+This process is the same as the one shown in the beginning of the section where the polynomial used there was $X^2-2$
+\\
+
+As abstract as this all seems you have likely done this implicitly before if you've ever used complex numbers.
+You were likely told to treat $\mathbb{C}$ and $\mathbb{R}$ but with an extra number $i$ such that $i^2=-1$.
+You can now see that $\mathbb{C}$ and $\mathbb{R}$ are fields and that $\mathbb{C}$ is what you get when you follow this adjoining process on $\mathbb{R}$ with $X^2+1$.
+
+\subsection{Finite Fields}
+One final piece of theory before the Rijndael Field is about the special case where a field as has finite number of elements.
+
+These finite fields are also called Galois Fields, in honor of \hyperref[intro:galois]{Galois}, and a finite field of size $n$ is denoted GF$(n)$ or $\mathbb{F}_n$.
+The field of "Numbers less than $5$ where we take the remainder after operations" that we have used had the proper name is GF$(5)$ or $\mathbb{F}_5$ and the and when adjoined with $\sqrt{3}$ it would become GF$(5)(\sqrt{3})$ or $\mathbb{F}_5(\sqrt{3})$.
+\\
+
+There is a lot of interesting facts we know about finite fields, but perhaps a better word would be restrictions.
+\\
+
+Eagle eye readers may have already figured out one of these restrictions from the previous notation.
+How can GF$(5)$ distinguish between two different finite fields of size 5?
+Well they don't have to because all finite fields of the same size are "isomorphic" with each other. 
+Which is an abstract algebra way of saying you can change what you label everything ($1\rightarrow a,\, 2\rightarrow \triangle$...) but the structure is the same.
+
+Those \hyperref[intro:gf5]{multiplication tables} where the only possible multiplication tables for five elements that are also a field.
+And since all the structure came from those tables it doesn't matter what we call the elements.
+\\
+
+I don't know of any easy proof/argument for this so I'm going to have to leave it as out of scope,
+but readers are encouraged to do their own research.
+\\
+
+This means that GF$(5)(\sqrt{3}) = $ GF$(25)$, which cleans up the ugly notation on the right hand side.
+\\
+
+Another interesting restriction on structure is that not all $n$ can have a finite field.
+Only $n$ that are the power of some prime $p$ can have a finite field.
+\\
+
+TODO: replace with a reference to Bézout's
+The intuition as to why prime numbers might be important consider the constructing a field of size $pq$, where $p$ and $q$ are different primes, like we constructed the field of size $5$.
+
+For this set to be a field there needs to be a reciprocal of $p$, meaning an $x$ such that $px$ has remainder $1$ when divided by $pq$. 
+Now we can assume $x < q$ because if $x>q$ we take $x-q$ as the new x since $p(x-q) = px-pq$ which has the same remainder when divided by $pq$ and we can repeat this step as much as we need until $x < q$.
+But if $x <q$ then $px < pq$ meaning we don't have to take the remainder when calculating $px$ meaning $px = 1$, no extra step needed.
+But $p>1$ and $x\geq 1$ meaning $px \geq 1$ which contradicts $px = 1$, 
+hence there can be no reciprocal of $p$ in a field of size $pq$ constructed this way.
+% This type of argument can be use to prove a Bézout's identity
+\\
+
+This argument actually only shows we can't construct a field of size $pq$ the way we constructed $5$,
+but the gist that there is a problem with reciprocals when we mix primes remains.
+\\
+
+While not useful to for out treatment of the Rijndael Field there is one more cool property of finite fields.
+That for the field GF$(p^n)$ we have:
+\[(a+b)^p = a^p+b^p\]
+No binomial expansion needed.
+\section{The Rijndael Field}
+The Rijndael Field is another name for GF$(2^8)$ and first entices the math savvy programmer by it's size.
+$2^8$ is the same as the number of states in a byte,
+and there are a tone of useful algorithms for $\mathbb{R}$ and $\mathbb{Q}$ that only rely on field operations.
+So can these algorithms become useful if applied to bytes through the Rijndael Field?
+\\
+
+Well the best answer is to check,
+and the best way to check to to construct GF$(2^8)$.
+\\
+
+Lets start with the multiplication and addition tables for GF$(2)$:
+\[
+\begin{array}{c|cc}
+	+& 0 & 1 \\
+	\hline 
+	0&0&1\\
+	1&1&0\\
+\end{array}
+\quad
+\begin{array}{c|ccccc}
+	\times & 0 & 1 \\
+	\hline 
+	0&0&0\\
+	1&0&1\\
+\end{array}
+\]
+Clearly $+$ is the XOR operator and $\times$ is the AND, already promising for computational applications.
+\\
+
+Now I present, without explanation, the following element of GF$(2)[X]$
+\[p(X) = X^8+X^4+X^3+X+1\]
+And assert that it constructs GF$(2^8)$ when used in the same way as in the construction section of Field Theory 101.
+This can be proved rigorously with Galois Theory but is outside the scope of this document.
+And for our purposes all that matters is that it does work and generates a representation of GF$(2^8)$:
+\[\text{GF}(2^8) = \{a_0 + a_1X+a_2X^2+a_3X^3+a_4X^4+a_5X^5+a_6X^6+a_7X^7\,|\,a_n\in[0,1]\}\]
+\\
+
+Addition and multiplication follow normal polynomial arithmetic,
+remembering that the coefficients are in GF$(2^8)$:
+\begin{equation*}
+\begin{aligned}
+	(1+X^2+X^5+X^7) + (X^3+X^5) =& 1+X^2 +X^3+(1+1)X^5+X^7\\
+	=& 1+X^2 +X^3 +X^7\\
+	(X^2+X^3) (1+X^5) =& 1+X^2+X^3+X^5+X^8 \\
+	=& 1+X^2+X^3+X^5+(p(X)-X^4-X^3-X-1) \\
+	=& -X+X^2-X^4+X^5+p(X) \\
+	=& X+X^2+X^4+X^5+p(X) \\
+	=& X+X^2+X^4+X^5 \\
+\end{aligned}
+\end{equation*}
+(Note that the last line comes from how GF$(2^8)$ was constructed through $p(X)$ means $p(X) = 0$).
+\\
+
+This is very promising as we can convert an element of GF$(2^8)$ to a byte by reading off coefficients from a $7^\text{th}$ degree polynomial.
+Addition in GF$(2^8)$ is just bitwise XOR.
+And Multiplication is a convolution where we trim of element greater than $X^8$ by using $p(X)=0$. 
+\\
+
+Multiplication is already a computationally tractable but there is a better method using "Generators".
+So with simple addition, easy conversion between GF$(2^8)$ and bytes, and the promise of a better multiplication I hope you are convinced that the Rijndael Field is computationally promising.
+
+\subsection{Generators}
+A generator for a field is an element $g$ such that for any non-zero element $a$ there is some integer $n$ such that:
+\[ a = g^n\]
+Where exponentiation is just iterative multiplication, nothing special.
+\\
+
+\subsection{Notation}
+Carrying $X$ around is annoying and we already have notation for bytes, so 
+
+\section{Hashing 101}
+For our purposes a hash function is an any function that inputs a string and outputs a number.
+The most direct example is converting the first character to it alphabetical number (A=$1$, B=$2$, etc.):
+\[\hash(\text{Apple}) = 1,\quad \hash(\text{Orange}) = 15\]
+
+There are two main applications for hashing:
+The first is performance,
+as operations on strings may be more expensive then on numbers so an efficient and well designed hash may allow us to work better on the numbers instead. 
+The second is cryptography,
+that is the practice of communicating secrets,
+where we want to hash the string and communicate the number in hopes of keeping the string secrete.
+\\
+
+There is a clear tension between these two applications.
+For performance you'd want as much information about the initial string easily assessable in the hash.
+But for cryptography you'd want as much information hidden as possible while still allowing communication. 
+\\
+
+This document aims to serve as an introduction,
+so wont optimize for either application,
+but I bring them up this early to wet the readers appetite about why they might care about hashing.
+{\textbf{ But also to state that the reader should not apply any algorithm here for cryptographic purposes without consulting a professional first.}}
+At least one technique used makes the algorithm susceptible to a \hyperref[appx:side-channel]{side-channel attack},
+and even if I avoided that technique there would be another one I'm ignorant of.
+
+\subsection{Hashing Terminology}
+With applications and warning asides there are some more things the reader should know.
+First is that in common use the term hash can mean both the hash function and the resulting number from that function.
+
+Secondly there are four general terms worth knowing:
+
+{\textbf{Collision:}} 
+A collision is when two strings have the same hash.
+This is broadly undesirable since any operation we want to preform on the hash has to work for both strings.
+
+{\textbf{Hash Table:}}
+A common application of hash functions in environments where accessing a look-up table with string keys are inefficient compared to number keys.
+We basically make a look-up table with number keys and when asked to look-up a string key we hash it first and use the result as the integer key.
+This will require us to deal with collisions as they come up.
+% A table here would really help the reader understand hashing, but also help break up a wall of text.
+% A picture where the name of fruit is mapped to a type of that fruit, show a collision?
+
+{\textbf{Perfect Hash Function:}}
+A perfect hash for a given set of strings is hash function where none of strings collide.
+
+{\textbf{Minimal Perfect Hash Function:}}
+A minimal perfect hash for a given set is a perfect hash function where all outputs of the string are less then or equal to the size of the set.
+In terms of features,
+but not necessarily performance,
+this is the ideal hash function as there are no collisions to deal with and no wasted numbers taking up space.
+
+\section{Abstract Algebra 101}
+A two sentence summary of Abstract Algebra would be something like:
+
+\begin{displayquote}
+Abstract Algebra is the study of Algebraic Structures.
+
+Algebraic Structures are a set of objects (e.g. Numbers) and operations (e.g. $+,\times,-,\sqrt{\phantom{1}}$) that follow certain axioms (e.g. $a+b = b+a$).
+\end{displayquote}
+
+One thing I want to stress is that from the abstract algebra viewpoint it is taken as an axiom
+that $a+b = b+a$.
+
+While one could make arguments about why $1+2 = 2+1$ in abstract algebra it's just kind of assumed as an axiom in algebraic structures of numbers.
+And we instead focus figuring out what are the logical conclusions of all the assumed axioms.
+\\
+
+The reason this is a useful thing to do is that it enables us reuse arguments for other structures given they have the same axioms used in the argument. 
+Consider a proof of the difference of two squares:
+\begin{equation*}
+\begin{aligned}
+	(a-b)(a+b) =& a(a+b)-b(a+b) \\
+	=& (a^2+ba)+((-b)a+(-b)b) \\
+	=& a^2+(ba+((-b)a)+-b^2 \\
+	=& a^2+a(b+(-b))-b^2 \\
+	=& a^2+a\times 0-b^2 \\
+	=& a^2-b^2 \\
+\end{aligned}
+\end{equation*}
+We can list all the axioms used\footnote{e.g. $a(b+c) = ab+ac$, $ab=ba$, $a+b = b+a$, $0\times a = 0$, $b+(-b) = 0$, $(-b)b = -b^2$, ...} and apply know that the difference of two squares is the natural conclusion of these axioms.
+And hence apply this formula to any algebraic structure that follows the axioms used.
+
+\section{Field Theory 101}
+\begin{displayquote}
+Fields are Algebraic structures that act like the rational numbers $\mathbb{Q}$ (i.e. Fractions with $+,-,\times,\div)$
+\end{displayquote}
+There are a lot of axioms for a field,
+and I don't think listing them all here would be useful.
+Especially when the reader can get the gist with an example.
+\\
+
+\label{intro:gf5}
+Consider multiplication and addition of integers less then $5$ where if the answer is greater than $5$ we divide it by $5$ and take the remainder:
+\[
+\begin{array}{c|ccccc}
+	+& 0 & 1& 2 &3 &4 \\
+	\hline 
+	0&0&1&2&3&4\\
+	1&1&2&3&4&0\\
+	2&2&3&4&0&1\\
+	3&3&4&0&1&2\\
+	4&4&0&1&2&3\\
+\end{array}
+\quad
+\begin{array}{c|ccccc}
+	\times & 0 & 1& 2 &3 &4 \\
+	\hline 
+	0&0&0&0&0&0\\
+	1&0&1&2&3&4\\
+	2&0&2&4&1&3\\
+	3&0&3&1&4&2\\
+	4&0&4&3&2&1\\
+\end{array}
+\]
+Here are some interesting properties of these tables:
+\begin{itemize}
+	\item They are mirrored around the diagonal. Meaning $a+b = b+a$ and $ab = ba$.
+	\item The number $0$ has the properties $0+a = a$ and $0\times a = 0$.
+	\item The number $1$ has the property $1a = a$.
+	\item For every number $a$ there is a unique number $b$ such that $a+b = 0$. (Meaning we can define $-a = b$).
+	\item For every nonzero number $a$ there is a unique number $b$ such that $ab = 1$. (Meaning we can define $\frac{1}{a} = b$).
+\end{itemize}
+These fact combined means we can define and manipulate fractions in this structure the same way we would in $\mathbb{Q}$.
+(Using $\frac{a}{b} = a\times\frac{1}{b}$ as needed).
+These operations (Addition, Multiplication, Negation, and Reciprocation) are called the field operations and the fact we can do all of them makes "Integers less then $5$ where we can take the remainder of any operation"\footnote{For reasons that will become clear later this structure is called $GF(5)$} a field.
+\\
+
+I said one of the benefits of abstract algebra is the reuse of arguments where the axioms still apply.
+So lets test this by applying the difference of squares proof from the previous section to $2$ and $4$:
+\[4^2-2^2 = 1 - 4 = -3 = 2\]
+and 
+\[(4-2)(4+2) = 2\times1 = 2\]
+Which are equal, as expected.
+\\
+
+It's also worth noting what we can't do in this structure:
+\begin{itemize}
+	\item Square root: Notice that in the $\times$ table diagonal there is no $2$ or $3$ this means we can't meaningfully talk about $\sqrt{2}$ or $\sqrt{3}$.
+	\item Order: Notice that $4+1 = 0$ but that normally we would say $0<4$ however adding $1$ to both sides gives $1<0$.
+\end{itemize}
+
+That's fine because neither of these concepts are part of the field axioms
+and this neutrality is what makes abstract algebra so powerful.
+
+Despite not being part of the field axioms, order makes sense in $\mathbb{Q}$, and square root makes sense for positive numbers in $\mathbb{R}$.
+This is because axioms in abstract algebra only guarantee the structure they are meant to describe and don't prohibit additional structure.
+You can pick and choose axiom and how they interact and take them to their logical conclusions while not having to repeat work what only requires certain subset of the axioms.
+\\
+
+We already implicitly took advantage of this power at the start when we defined field as like $\mathbb{Q}$ but not $\mathbb{R}$.
+Operations like square roots working for all positive integers aren't going to be important for our hashing application so we are using a field to work because that's all we need.
+
+\subsection{Constructing Fields}
+To really use the full potency of Field Theory,
+and eventually use the Rijndael field,
+we need to move past describing fields that we already know and move to constructing new fields.
+\\
+
+The most obvious way to construct a field is to take an existing field $F$ and add another number $a$ to it while doing whatever is necessary to make sure the field axioms still apply.
+This process is called the adjoining of $a$ to $F$.
+\\
+
+As \hyperref[intro:gf5]{observed earlier} there is no $\sqrt{3}$ in the field $F$ of integers remainder $5$.
+\\
+
+What if we define a new set $G$ such that:
+\[G = \left\{a+b\sqrt{3}\,|\,a,b\in [0,4]\right\}\]
+With addition, multiplication, and negation working as expected (taking the remainder as needed):
+\begin{equation*}
+\begin{aligned}
+	(a_0+b_0\sqrt{3})+(a_1+b_1\sqrt{3}) =& (a_0+a_1)+(b_0+b_1)\sqrt{3} \\
+	(a_0+b_0\sqrt{3})\times (a_1+b_1\sqrt{3}) =& (a_0b_0+3a_1b_1)+(a_0b_1+a_1b_0)\sqrt{3} \\
+	-(a_0+b_0\sqrt{3})=& (-a_0)+(-b_0)\sqrt{3})\\
+\end{aligned}
+\end{equation*}
+And reciprocation defined as:
+\[\frac{1}{a+b\sqrt{3}} = \frac{1}{a^2-3b^2}(a-b\sqrt{3})\]
+
+Hence we have created a new field $G$ that contains $F$ as a subfield, when $b=0$ and includes a square root of $3$ while satisfying of the field axioms.
+\\
+
+\label{intro:galois}
+The theory for constructing new fields was laid by groundbreaking work 19$\text{th}$ mathematician Évariste Galois.
+%Picture here.
+Like much groundbreaking work before and after it wasn't understood in it's time.
+With influential mathematicians like Cauchy rejecting Galois' papers and Poisson calling it "incomprehensible".
+This lack of understanding was not helped when Galois' political activism landed him in jail after the French Revolution of 1850 and upon being release immediately entering a duel and dying.
+\\
+
+Surly such a groundbreaking idea from such a interesting life must be too complex for regular people to understand?
+Well what this groundbreaking work focused on was finding the roots of polynomials,
+something you likely did in high school.
+\\
+
+Because multiplication and addition are field operations given a field $F$ we can define the set of polynomials with coefficients in $F$ as $F[X]$.
+And if $a$ can be written as the solution to a polynomial in $F[X]$ we can create a new field $F(a)$ where the elements of the new field are polynomials in the old field evaluated at $a$, this set is denoted \hyperref[appx:adjoining]{$F[a]$}.
+
+This process is the same as the one shown in the beginning of the section where the polynomial used there was $X^2-2$
+\\
+
+As abstract as this all seems you have likely done this implicitly before if you've ever used complex numbers.
+You were likely told to treat $\mathbb{C}$ and $\mathbb{R}$ but with an extra number $i$ such that $i^2=-1$.
+You can now see that $\mathbb{C}$ and $\mathbb{R}$ are fields and that $\mathbb{C}$ is what you get when you follow this adjoining process on $\mathbb{R}$ with $X^2+1$.
+
+\subsection{Finite Fields}
+One final piece of theory before the Rijndael Field is about the special case where a field as has finite number of elements.
+
+These finite fields are also called Galois Fields, in honor of \hyperref[intro:galois]{Galois}, and a finite field of size $n$ is denoted GF$(n)$ or $\mathbb{F}_n$.
+The field of "Numbers less than $5$ where we take the remainder after operations" that we have used had the proper name is GF$(5)$ or $\mathbb{F}_5$ and the and when adjoined with $\sqrt{3}$ it would become GF$(5)(\sqrt{3})$ or $\mathbb{F}_5(\sqrt{3})$.
+\\
+
+There is a lot of interesting facts we know about finite fields, but perhaps a better word would be restrictions.
+\\
+
+Eagle eye readers may have already figured out one of these restrictions from the previous notation.
+How can GF$(5)$ distinguish between two different finite fields of size 5?
+Well they don't have to because all finite fields of the same size are "isomorphic" with each other. 
+Which is an abstract algebra way of saying you can change what you label everything ($1\rightarrow a,\, 2\rightarrow \triangle$...) but the structure is the same.
+
+Those \hyperref[intro:gf5]{multiplication tables} where the only possible multiplication tables for five elements that are also a field.
+And since all the structure came from those tables it doesn't matter what we call the elements.
+\\
+
+I don't know of any easy proof/argument for this so I'm going to have to leave it as out of scope,
+but readers are encouraged to do their own research.
+\\
+
+This means that GF$(5)(\sqrt{3}) = $ GF$(25)$, which cleans up the ugly notation on the right hand side.
+\\
+
+Another interesting restriction on structure is that not all $n$ can have a finite field.
+Only $n$ that are the power of some prime $p$ can have a finite field.
+\\
+
+The intuition as to why prime numbers might be important consider the constructing a field of size $pq$, where $p$ and $q$ are different primes, like we constructed the field of size $5$.
+
+For this set to be a field there needs to be a reciprocal of $p$, meaning an $x$ such that $px$ has remainder $1$ when divided by $pq$. 
+Now we can assume $x < q$ because if $x>q$ we take $x-q$ as the new x since $p(x-q) = px-pq$ which has the same remainder when divided by $pq$ and we can repeat this step as much as we need until $x < q$.
+But if $x <q$ then $px < pq$ meaning we don't have to take the remainder when calculating $px$ meaning $px = 1$, no extra step needed.
+But $p>1$ and $x\geq 1$ meaning $px \geq 1$ which contradicts $px = 1$, 
+hence there can be no reciprocal of $p$ in a field of size $pq$ constructed this way.
+% This type of argument can be use to prove a Bézout's identity
+\\
+
+This argument actually only shows we can't construct a field of size $pq$ the way we constructed $5$,
+but the gist that there is a problem with reciprocals when we mix primes remains.
+\\
+
+While not useful to for out treatment of the Rijndael Field there is one more cool property of finite fields.
+That for the field GF$(p^n)$ we have:
+\[(a+b)^p = a^p+b^p\]
+No binomial expansion needed.
+\section{The Rijndael Field}
+The Rijndael Field is another name for GF$(2^8)$ and first entices the math savvy programmer by it's size.
+$2^8$ is the same as the number of states in a byte,
+and there are a tone of useful algorithms for $\mathbb{R}$ and $\mathbb{Q}$ that only rely on field operations.
+So can these algorithms become useful if applied to bytes through the Rijndael Field?
+\\
+
+Well the best answer is to check,
+and the best way to check to to construct GF$(2^8)$.
+\\
+
+Lets start with the multiplication and addition tables for GF$(2)$:
+\[
+\begin{array}{c|cc}
+	+& 0 & 1 \\
+	\hline 
+	0&0&1\\
+	1&1&0\\
+\end{array}
+\quad
+\begin{array}{c|ccccc}
+	\times & 0 & 1 \\
+	\hline 
+	0&0&0\\
+	1&0&1\\
+\end{array}
+\]
+Clearly $+$ is the XOR operator and $\times$ is the AND, already promising for computational applications.
+\\
+
+Now I present, without explanation, the following element of GF$(2)[X]$
+\[p(X) = X^8+X^4+X^3+X+1\]
+And assert that it constructs GF$(2^8)$ when used in the same way as in the construction section of Field Theory 101.
+This can be proved rigorously with Galois Theory but is outside the scope of this document.
+And for our purposes all that matters is that it does work and generates a representation of GF$(2^8)$:
+\[\text{GF}(2^8) = \{a_0 + a_1X+a_2X^2+a_3X^3+a_4X^4+a_5X^5+a_6X^6+a_7X^7\,|\,a_n\in[0,1]\}\]
+\\
+
+Addition and multiplication follow normal polynomial arithmetic,
+remembering that the coefficients are in GF$(2^8)$:
+\begin{equation*}
+\begin{aligned}
+	(1+X^2+X^5+X^7) + (X^3+X^5) =& 1+X^2 +X^3+(1+1)X^5+X^7\\
+	=& 1+X^2 +X^3 +X^7\\
+	(X^2+X^3) (1+X^5) =& 1+X^2+X^3+X^5+X^8 \\
+	=& 1+X^2+X^3+X^5+(p(X)-X^4-X^3-X-1) \\
+	=& -X+X^2-X^4+X^5+p(X) \\
+	=& X+X^2+X^4+X^5+p(X) \\
+	=& X+X^2+X^4+X^5 \\
+\end{aligned}
+\end{equation*}
+(Note that the last line comes from how GF$(2^8)$ was constructed through $p(X)$ means $p(X) = 0$).
+\\
+
+This is very promising as we can convert an element of GF$(2^8)$ to a byte by reading off coefficients from a $7^\text{th}$ degree polynomial.
+Addition in GF$(2^8)$ is just bitwise XOR.
+And Multiplication is a convolution where we trim of element greater than $X^8$ by using $p(X)=0$. 
+\\
+
+Multiplication is already a computationally tractable but there is a better method using "Generators".
+So with simple addition, easy conversion between GF$(2^8)$ and bytes, and the promise of a better multiplication I hope you are convinced that the Rijndael Field is computationally promising.
+
+\subsection{Generators}
+A generator for a field is an element $g$ such that for any non-zero element $a$ there is some integer $n$ such that:
+\[ a = g^n\]
+Where exponentiation is just iterative multiplication, nothing special.
+\\
+
+\subsection{Notation}
+Carrying $X$ around is annoying and we already have notation for bytes, so 

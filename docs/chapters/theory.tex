@@ -640,11 +640,98 @@ And Multiplication is a convolution where we trim of element greater than $X^8$ 
 Multiplication is already a computationally tractable but there is a better method using "Generators".
 So with simple addition, easy conversion between GF$(2^8)$ and bytes, and the promise of a better multiplication I hope you are convinced that the Rijndael Field is computationally promising.
 
+\subsection{Bytes and Notation}
+Carrying $X$s around is annoying, 
+especially since the coefficients can only be $1$ or $0$ meaning they are either there or not.
+We have previously stated the main allure of the Rijndael Field is that it has a one to one mapping to bytes.
+So maybe writing them as bytes will be more convent.
+
+\subsubsection{Want a Byte?}
+A bit is something that can either be on ($1$) or off ($0$) and a byte is eight\footnote{
+	Technically A byte is the smallest addressable unit of addressable memory in a computer.
+	But society has all but agreed that this is eight bits.
+	}
+	bits. 
+
+So we can represent a byte as a list of eight $1$s or $0$s.
+For example,
+a byte where the first four bits are on and the rest off would be written as $11110000$.
+
+To make this more compact we interpret this list as a binary number and then write that number in hexadecimal\footnote{Base $16$}.
+\begin{center}
+\begin{tabular}{|c|cc|}
+	\hline
+	Decimal&Binary&Hexadecimal\\
+	\hline
+	0&0000&0\\
+	1&0001&1\\
+	2&0010&2\\
+	3&0011&3\\
+	4&0100&4\\
+	5&0101&5\\
+	6&0110&6\\
+	7&0111&7\\
+	8&1000&8\\
+	9&1001&9\\
+	10&1010&A\\
+	11&1011&B\\
+	12&1100&C\\
+	13&1101&D\\
+	14&1110&E\\
+	15&1111&F\\
+	\hline
+\end{tabular}
+\end{center}
+So the previous half on byte would be $F0$.
+\\
+
+For a more worked example consider figuring out how the number $166$ would be stored in a byte:
+\[166 = 2^7+2^5+2^2+2^1 \rightarrow \overbrace{1010}^A\overbrace{0110}^6 = A6\]
+Or we could equivalently use hexadecimals directly:
+\[166 =  10\time16^1+6\times16^0 \rightarrow A6\]
+
+The final piece is to observe that each of the bits of a byte can represent one of the coefficients of a polynomial in GF$(2)[X]$:
+\[X^7+X^4+X^2+1 \rightarrow \overbrace{1001}^9\overbrace{0101}^5 = 95\]
+
 \subsection{Generators}
 A generator for a field is an element $g$ such that for any non-zero element $a$ there is some integer $n$ such that:
 \[ a = g^n\]
 Where exponentiation is just iterative multiplication, nothing special.
 \\
 
-\subsection{Notation}
-Carrying $X$ around is annoying and we already have notation for bytes, so 
+Generators are useful because they simplify the multiplication of field element.
+For example,
+the generator for the Rijndael field is $X^2+1$ and we wish to multiply $X^2+1$ and $X^4+1$.
+We have:
+\[X^2+1 = (X+1)^2,\quad X^5+X^4+X+1 = (X+1)^5\]
+To do this the direct way we would need to preform polynomial convolution and then cancel any relevant terms.
+But knowing they are powers of $X+1$ we can instead use:
+\begin{equation*}
+\begin{aligned}
+	(X^2+1)(X^5+X^4+X+1) =& (X+1)^2(X+1)^5\\
+	=& (X+1)^7 \\
+	=& X^7+X^6+X^5+X^4+X^3+X^2+X+1\\
+\end{aligned}
+\end{equation*}
+
+This looks promising,
+but expanding $(X+1)^7$ still looks tiresome.
+But we can have a table of powers of $X+1$ and just look up the $7$th item.
+Combine this with a table which coverts a polynomial to which power of $X+1$ it is,
+called the index,
+and we can stream line multiplication to three lookups (two indexes, one power).
+\\
+
+These tables would only require $512$ bytes and have been included \hyperref[appx:gen-table]{in the appendix}.
+\\
+
+For brevity the tables write the elements in byte form so if you wish to verify the math of this section would need:
+\begin{equation*}
+\begin{aligned}
+	X+1 &\rightarrow 03\\
+	X^2+1 & \rightarrow 05\\
+	X^5+X^4+X+1 & \rightarrow 33\\
+	X^7+X^6+X^5+X^4+X^3+X^2+X+1 &\rightarrow FF\\
+\end{aligned}
+\end{equation*}
+

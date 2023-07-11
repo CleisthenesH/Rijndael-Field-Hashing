@@ -364,7 +364,7 @@ So the previous half on byte would be $F0$.
 For a more worked example consider figuring out how the number $166$ would be stored in a byte:
 \[166 = 2^7+2^5+2^2+2^1 \rightarrow \overbrace{1010}^A\overbrace{0110}^6 = A6\]
 Or we could equivalently use hexadecimals directly:
-\[166 =  10\time16^1+6\times16^0 \rightarrow A6\]
+\[166 =  10\times16^1+6\times16^0 \rightarrow A6\]
 
 The final piece is to observe that each of the bits of a byte can represent one of the coefficients of a polynomial in GF$(2)[X]$:
 \[X^7+X^4+X^2+1 \rightarrow \overbrace{1001}^9\overbrace{0101}^5 = 95\]

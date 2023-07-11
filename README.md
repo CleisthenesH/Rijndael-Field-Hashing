@@ -1,4 +1,4 @@
-**Under Construction**
+**:warning:Under Construction:warning:**
 
 # Rijndael Field Hashing
 
@@ -24,6 +24,9 @@ Assume for now that whatever the equivalent to addition, multiplication, and div
 In particular, given $n$ vectors $x_k$ with $n$ elements and $n$ targets $y_k$ we can find $n$ coefficients $a$ such that:
 
 $$ y_k = a\cdot x_k $$
+
+This is a pretty customizable hash for only $n$ multiplications and $n-1$ additions,
+and both of these operations are more efficient in Rijndael Field then it might at first seem.
 
 # Structure of this Repository
 The goal of this repository is to have a src folder the implementation of algorithms in C, and a docs folder with explanations written in LaTeX. 

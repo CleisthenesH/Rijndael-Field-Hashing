@@ -265,6 +265,7 @@ Hence every element of $\mathbb{Q}[X] / (X^2 - 2)$ is invertible,
 making it a field.
 
 \subsection{Conclusion}
+\label{appx:ring-conclusion}
 Being an appendix the main goal of Ring Theory 101 is to communicate key ideas around rings for the main text.
 These ideas are:
 \begin{itemize}
@@ -276,32 +277,17 @@ These ideas are:
 \end{itemize}
 \section{Adjoining a Number to a Field}
 \label{appx:adjoining}
-TODO: clean up and probably add an appendix for Bézout's identity and the notation $F[X]$.
-When adjoining a number $a$ to field $F$ there are two steps:
-\begin{enumerate}
-\item Making a set which includes all the elements of $F$ as well as $a$.
-\item Making sure the all the field axioms still apply to the new set.
-\end{enumerate}
-While it easy to make sure addition, subtraction, and multiplication work by defining a new set which is the sum of powers of $a$ times elements in $F$:
-\[\left\{\sum_n f_na^n\, |\, f_n \in F\right\}\]
-But what about reciprocation? 
+$F(a)$ means the smallest field including both the field $F$ and the number $a$ and is referred as adjoining $a$ to $F$.
+As suggested by \hyperref[appx:ring-conclusion]{Ring Theory 101's conclusion}, a standard way to do this is to consider polynomials with coefficients in $F$, denoted $F[X]$, and find a polynomial $p(x)\in F[X]$ such $p(a)=0$ consider the quotient ring of $F[X]/q(X)$,
+using Bézout's identity when necessary.
 \\
 
-Well for this discussion we have two similar but distinct notations:
-\begin{enumerate}
-	\item $F[a]$ is the ring\footnote{An algebraic structure that is a field without reciprocation} with the set defined as above.
-	\item $F(a)$ the minimal field that includes the element $a$ and the subfield $F$.
-\end{enumerate}
-
-These objects aren't necessarily the same.
-Consider a number $a$ that isn't the solution of some polynomial in $F$.
-(I state, without proof, that this is the case $a=\pi$ and $F=\mathbb{Q}$).
-Then $F(a) \neq F[a]$ because $a^{-1}  \not \in F$.
+But it's really important not to confuse polynomials with coefficients in $F$, denoted $F[X]$, polynomials with coefficients in $F$ evaluated at $a$, denoted $F[a]$, and the field $F$ adjoined with $F(a)$.
+What makes this issue more confusing is that when $a$ is the root of a polynomial in $F$\footnote{This property is called $a$ being algebraic over $F$} we do have $F[a]=F(a)$.
 \\
 
-Now consider the case where $a$ is the solution of some polynomial over $F$.\footnote{This property is called $a$ being algebraic over $F$}
 Without lost of generality let $f$ be the minimal polynomial such that $f(a)=0$.
-Let $g$ be a different polynomial in $F[X]$
+Let $g$ be a different polynomial in $F[X]$.
 By the minimality of $f$ either $g(a)=0$ or $f$ and $g$ are relatively prime.
 If $g(a)=0$ then $g=0$ in $F[a]$ meaning it doesn't need a reciprocal,
 hence $f$ and $g$ are relatively prime,
@@ -309,12 +295,19 @@ and hence from Bézout's identity we have polynomial $r$,$s$ in $F[X]$ such that
 \[f(x)r(x)+g(x)s(x) = 1\]
 But when we substitute in $a$ we have:
 \[g(a)s(a) = 1\]
-Hence $g$ has a reciprocal in $F[a]$ and hence $F[a] = F(a)$
+Hence $g$ has a reciprocal in $F[a]$ and from this, with a bit more legwork, we have $F[a] = F(a)$
 \\
 
-In practice a lot of numbers adjoined to a field are defined as roots of polynomials it is often the case that $F[a] = F(a)$.
+But when $a$ isn't algebraic this isn't true.
+Consider a number $a$ that isn't the solution of some polynomial in $F$.
+Then $F(a) \neq F[a]$ because $a^{-1} \not \in F$.
+For example there is no element $\pi^{-1}\not\in F[\pi]$.
+\\
 
-%TODO: make possessive s joke
+As much as I stress that $F[a]$ doesn't necessarily equal $F(a)$ the fact that for most contexts it does means confusion is likely.
+Its the missing apostrophe of field theory,
+as much as I warn you about it dont worry about it.
+Like missing apostrophise someone will tell you.
 
 \section{Generator Tables}
 \label{appx:gen-table}
@@ -462,7 +455,96 @@ Since matrix multiplication isn't commutative this makes the processes very diff
 
 Readers interesting in learning more about diagonalization and it's uses are encouraged to first loop up eigenvalues and then "The Jordan Normal Form".
 
-\subsection{Laplace Expansion}
-\label{appx:laplace-expansion}
+\subsection{Vandermonde Polynomial}
+\label{appx:vandermonde-polynomial}
 
-\section{Polynomial Arithmetic}
+This proof of the determinant of the Vandermonde Matrix,
+the Vandermonde Polynomial,
+relies on the readers familiarity with three properties of the determinant.
+
+\begin{enumerate}
+	\item[1] If a row has only one non-zero element then the determinant is equal to that element times by the matrix with that row and column removed. \\
+	\item[2] Multiplying a row by a constant multiplies the determinant by the same constant. \\
+	\item[3] Adding a multiple of one row to another doesn't change the determinant. \\
+\end{enumerate}
+
+For those familiar with these properties skip the next paragraph,
+for those not remember that geometrically the determinant is the signed $n$-dimensional volume of the parallelotope of the matrices column.
+You don't need to know what that means rigorously\footnote{And if you aren't familiar with these properties then this description alone probably doesn't help.} but can think of it like getting the volume of a regular cube.
+In this case the first property is like how the volume of a cube is its depth times its cross-section,
+the second property is like how if you double a single cube's side length you double it's area,
+and the third property is like describing the cubes points relative to other points instead the origin. 
+\\
+
+The first step of finding the determinate is to subtract $v_0$ times the previous column from each column,
+this doesn't change the determinate:
+\begin{equation*}
+\begin{aligned}
+\begin{vmatrix} 
+	1&x_0&x_0^2&\dots&x_0^n \\
+	1&x_1&x_1^2&\dots&x_1^n \\
+	1&x_2&x_2^2&\dots&x_2^n \\
+	\vdots&\vdots&\vdots&\ddots&\vdots \\
+	1&x_n&x_n^2&\dots&x_n^n \\
+\end{vmatrix} =&
+\begin{vmatrix} 
+	1&x_0-x_0&x_0^2-x_0x_0&\dots&x_0^n-x_0x_0^{n-1} \\
+	1&x_1-x_0&x_1^2-x_0x_1&\dots&x_1^n-x_0x_1^{n-1}\\
+	1&x_2-x_0&x_2^2-x_0x_2&\dots&x_2^n-x_0x_2^{n-1} \\
+	\vdots&\vdots&\vdots&\ddots&\vdots \\
+	1&x_n-x_0&x_n^2-x_0x_n&\dots&x_n^n-x_0x_n^{n-1} \\
+\end{vmatrix} \\
+=&
+\begin{vmatrix} 
+	1&0&0&\dots&0 \\
+	1&x_1-x_0&(x_1-x_0)x_1&\dots&(x_1-x_0)x_1^{n-1}\\
+	1&x_2-x_0&(x_2-x_0)x_2&\dots&(x_2-x_0)x_2^{n-1} \\
+	\vdots&\vdots&\vdots&\ddots&\vdots \\
+	1&x_n-x_0&(x_n-x_0)x_n&\dots&(x_n-x_0)x_n^{n-1} \\
+\end{vmatrix} \\
+\end{aligned}
+\end{equation*}
+Since there is a row with where the only non-zero element is $1$,
+so the determinant is the same if we removed that row and column.
+\[
+\begin{vmatrix} 
+	1&x_0&x_0^2&\dots&x_0^n \\
+	1&x_1&x_1^2&\dots&x_1^n \\
+	1&x_2&x_2^2&\dots&x_2^n \\
+	\vdots&\vdots&\vdots&\ddots&\vdots \\
+	1&x_n&x_n^2&\dots&x_n^n \\
+\end{vmatrix}  
+=
+\begin{vmatrix} 
+	x_1-x_0&(x_1-x_0)x_1&\dots&(x_1-x_0)x_1^{n-1}\\
+	x_2-x_0&(x_2-x_0)x_2&\dots&(x_2-x_0)x_2^{n-1} \\
+	\vdots&\vdots&\ddots&\vdots \\
+	x_n-x_0&(x_n-x_0)x_n&\dots&(x_n-x_0)x_n^{n-1} \\
+\end{vmatrix} 
+\]
+Now observe that we can factor $(x_1-x_0)$ from the top row, 
+and $(x_2-x_0)$ from the next,
+and so on:
+\[
+\begin{vmatrix} 
+	1&x_0&x_0^2&\dots&x_0^n \\
+	1&x_1&x_1^2&\dots&x_1^n \\
+	1&x_2&x_2^2&\dots&x_2^n \\
+	\vdots&\vdots&\vdots&\ddots&\vdots \\
+	1&x_n&x_n^2&\dots&x_n^n \\
+\end{vmatrix}  
+=\prod_{k=1}^n(x_k-x_0)
+\begin{vmatrix} 
+	1&x_1&\dots&x_1^{n-1}\\
+	1&x_2&\dots&x_2^{n-1} \\
+	\vdots&\vdots&\ddots&\vdots \\
+	1&x_n&\dots&x_n^{n-1} \\
+\end{vmatrix} 
+\]
+Which is the $n^\text{th}$ dimensional Vandermonde polynomial in term of the $(n-1)^\text{th}$,
+hence induction gives the required result.
+
+\section{Hardware and Instruction Sets}
+\subsection{CLMUL Instruction Set}
+Carry-less multiplication basically polynomial multiplication in GF$(2)$.
+\subsection{AES Instruction Set}

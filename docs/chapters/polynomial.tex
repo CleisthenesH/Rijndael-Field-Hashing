@@ -115,7 +115,7 @@ observe that the functions are all well defined provided $x_m \neq x_n$ and once
 Since a $n-1$ degree polynomial is uniquely defined by its value at $n$ points because Vandermonde and Lagrange are calculating the same polynomial we would also expect the matrix to be invertible when $x_m \neq x_n$.
 
 This intuition can be made rigours by calculating the determinate of the Vandermonde Matrix.
-\hyperref[appx:laplace-expansion]{The full calculation can be found in the appendix,}
+\hyperref[appx:vandermonde-polynomial]{The full calculation can be found in the appendix,}
 but cutting to the chase we have:
 \[\det(V(x_0,x_1,\dots,x_n)) = \prod_{0\leq i \leq j \leq n-1}(x_j-x_i)\]
 This result is called the Vandermonde Polynomial and has wider application that just inverting the Vandermonde Matrix but for our purposes it matches our intuition.

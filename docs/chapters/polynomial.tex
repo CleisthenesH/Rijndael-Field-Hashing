@@ -120,11 +120,69 @@ but cutting to the chase we have:
 \[\det(V(x_0,x_1,\dots,x_n)) = \prod_{0\leq i \leq j \leq n-1}(x_j-x_i)\]
 This result is called the Vandermonde Polynomial and has wider application that just inverting the Vandermonde Matrix but for our purposes it matches our intuition.
 The determinate is non zero when $x_n\neq x_m$ and zero when $x_n=x_m$, for some $n$ and $m$.
+
 \section{Evaluation}
-\subsection{Horner's scheme}
+An important application for hashing is improving performance,
+hence there efficient polynomial evaluation is a must.
+For historical reasons algorithms that evaluate polynomials are called schemes and in this section I will be convening three schemes.
+
+\subsection{Naïve Scheme}
+Let $a_k$ be the $k^\text{th}$ order coefficient for an $n$ degree polynomial.
+Then the naïve method of evaluating the polynomial at $x$ involves evaluating the first $n$ powers of $x$.
+Multiplying the powers by the coefficients then summing them together.
+\\
+For example, consider evaluating:
+\[2+x+3x^2+x^3\]
+at $x=2$.
+\begin{enumerate}
+	\item Calculate a list of powers: $x^0 = 1,\,x^1 = 2,\,x^2 = 4,\,x^3 = 8$.
+	\item Multiply by coefficients: $a_0x_0 = 2,\,a_1x^1 = 2,\,a_2x^2 = 12,\, a_3x^3 = 8$.
+	\item Sum all the results: $2+2+12+8 = 24$.
+\end{enumerate}
+Assuming we evaluated the powers of $x$ by multiplying the previous power by $x$ instead of starting from scratch,
+this method takes $n-1$ multiplications to evaluate the powers,
+$n$ multiplications for multiplying the coefficients by the powers,
+and $n-1$ additions.
+
+\subsection{Horner's Scheme}
+Horner's scheme is an iterative polynomial evaluation scheme where we combine the multiplication for generating powers with the multiplication for the coefficients.
+Algebraically, it looks like this:
+\[a_0+a_1x+a_2x^2+a_3x^3 = a_0+x(a_1+x(a_2+x(a_3)))\]
+Algorithmically, we initialize with: 
 \[y_0 = a_n\]
+Then iterate with:
 \[y_k = a_{n-k}+xy_{k-1}\]
-\subsection{Estrin's scheme}
-\subsection{Parallel evaluation}
+\\
+There are $n$ iterative steps and each step involves one multiplication and one addition.
+Reusing the naïve example we get:
+\begin{enumerate}
+	\item Initialize: $y_0 = 1$
+	\item Iterate: $y_1 = a_2+xy_1 = 3+2\times1 = 5$
+	\item Iterate: $y_2 = a_1+xy_2 = 1+2\times5 = 11$
+	\item Iterate: $y_3 = a_0+xy_3 = 2+2\times11 = 24$
+\end{enumerate}
+Which gives the same result of $24$ but for only three multiplications and three additions.
+
+\subsection{Estrin's Scheme}
+In terms of number of multiplications, Horner's Scheme is the best and one of the most common evaluation scheme for general polynomial evaluation.
+But there is one flaw.
+Every iterative step requires the previous to be completed,
+which really limits the ability to parallelize the algorithm.
+\\
+
+Estrin's scheme converts an $n$ degree evaluation at $x$ into a $\lfloor n/2 \rfloor$ degree evaluation at $x^2$ using $\lceil n/2 \rceil$ additions and multiplications that can be done in parallel,
+algebraically:
+\[a_0+a_1x+a_2x^2+a_3x^3 = (a_0+xa_1)+x^2(a_2+xa_3)\]
+Algorithmically,
+we input an $n$-array $a_k$ of coefficients along side $x$ and output the $\lceil n/2 \rceil$-array $b_k$ along side $x^2$ such that:
+\[b_k = a_{2k}+xa_{2k+1}\]
+And iterate until we have a $1$-array with the value as it's only element.
+
+\begin{enumerate}
+	\item Input: $[2,1,3,1]$ and $x=2$
+	\item Iterate: $[2+1\times2,3+1\times2] = [4,5]$ and $x=4$
+	\item Iterate: $[4+5\times4] = [24]$ and $x=8$
+\end{enumerate}
+
 \section{Application to Hashing}
 Minimal perfect hashing.

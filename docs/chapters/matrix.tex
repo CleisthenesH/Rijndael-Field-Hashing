@@ -178,13 +178,80 @@ Rrwrite to bring in the opening.
 Jordan normal form??
 
 \subsection{The Algorithm}
-Matrices can easliy be represented as 2d-arrays,
-elemetry row operations aren't hard to implement either,
-and the iterative nature of finall equation directly suggests the structure of the algorith.
+Matrices can easily be represented as 2d-arrays,
+elementary row operations aren't hard to implement either,
+and the iterative nature of final equation directly suggests the structure of the algorithm.
 However there is one more observation 
-instead of keeping in memory all the elementry row operation, just directly apply them to the $B$ as we go.
-augmented matrices are exceleent at facilitating this.
+instead of keeping in memory all the elementary row operation, just directly apply them to the $B$ as we go.
+Augmented matrices are excellent at facilitating this.
+
 \section{Application to Hashing}
+Consider an array of $n$ strings, $s_i$, and an array of $n$ values, $a_i$.
+Let their be some function $f$ that converts a string to $n$ field elements.
+Let $m_{i,j}$ be the $j$th field element for string $s_i$.
+Construct the matrix $M$ from $m_{i,j}$ and the column vector $A$ from $a_i$ in the unusual ways.
+If $M$ is invertible, then we can use the above algorithm obtains a column vector $B$ such that:
+\[MB = A\]
+Which in element form is:
+\[\sum_{k=1}^nb_jf(s_i)_j = a_i\]
+Which defines the hash function:
+\[h(s)=\sum_{k=1}^nb_jf(s)_j\]
+Such that:
+\[h(s_i) = a_i\]
+As required.
+
+\subsection{Example}
+Consider the strings:
+\[s_1 = \text{"APPLE"},\quad s_2 = \text{"ORANGE"} \]
+The hash values:
+\[a_1 = 01,\quad a_2 = 02\]
+The expression $f(s_i)_j$ maps the $j$th character in the $i$th string to it's place in the alphabet.
+Relevant conversions done bellow,
+full conversion can be found in the \hyperref[theory:byte]{theory section}:
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+	\hline
+	Character & Decimal & Field Element \\	
+	\hline
+	A &  1 & 01 \\
+	O & 15 & 0A \\
+	P & 16 & 10 \\
+	R & 18 & 12 \\
+	\hline
+\end{tabular}
+\end{center}
+
+Hence the requirement for $B$ is such:
+\[ 
+\begin{bmatrix}
+	01&10\\
+	0A&12\\
+\end{bmatrix}
+\begin{bmatrix}
+	b_1 \\ b_2\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	01\\ 02 \\
+\end{bmatrix}
+\]
+Which has solution:
+\[
+\begin{bmatrix}
+	b_1 \\ b_2\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	18\\F8 \\
+\end{bmatrix}
+\]
+And gives the hash function:
+\[h(s) = 18\times f(s)_1+F8\times f(s)_2\]
+
+\subsection{Uniqueness}
+$Ma_0 = Ma_1$ for invertible $M$
+
+\subsection{Invertibility}
 liner and human names
-$Ma_0 = Ma_1$ for invertable $M$
-preprocesing/ offsetting
+preprocessing/offsetting

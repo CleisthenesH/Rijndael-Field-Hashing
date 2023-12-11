@@ -250,8 +250,21 @@ And gives the hash function:
 \[h(s) = 18\times f(s)_1+F8\times f(s)_2\]
 
 \subsection{Uniqueness}
-$Ma_0 = Ma_1$ for invertible $M$
+A useful consequence of the invertibility of $M$ is that:
+\begin{equation*}
+\begin{aligned}
+	Ma_0 = Ma_1 \Rightarrow\,& M(a_0-a_1) = 0 \\
+	\Rightarrow\,& M^{-1}M(a_0-a_1) = M^{-1}0 \\
+	\Rightarrow\,& a_1-a_0 = 0\\
+	\Rightarrow\,& a_1=a_0\\
+\end{aligned}
+\end{equation*}
 
-\subsection{Invertibility}
+This uniqueness makes means that collision of two strings $s_0$ and $s_1$ is only possible if for all $j$:
+\[f(s_0)_j=f(s_1)_j\]
+Hence,
+if for a given set of strings $S$ we choose $f$ such that this equality doesn't occur $f$ will be a perfect hash on $S$.
+
+\subsection{Example $f$}
 liner and human names
 preprocessing/offsetting

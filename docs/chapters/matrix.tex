@@ -193,9 +193,9 @@ Construct the matrix $M$ from $m_{i,j}$ and the column vector $A$ from $a_i$ in 
 If $M$ is invertible, then we can use the above algorithm obtains a column vector $B$ such that:
 \[MB = A\]
 Which in element form is:
-\[\sum_{k=1}^nb_jf(s_i)_j = a_i\]
+\[\sum_{j=1}^nb_jf(s_i)_j = a_i\]
 Which defines the hash function:
-\[h(s)=\sum_{k=1}^nb_jf(s)_j\]
+\[h(s)=\sum_{j=1}^nb_jf(s)_j\]
 Such that:
 \[h(s_i) = a_i\]
 As required.
@@ -249,22 +249,91 @@ Which has solution:
 And gives the hash function:
 \[h(s) = 18\times f(s)_1+F8\times f(s)_2\]
 
-\subsection{Uniqueness}
-A useful consequence of the invertibility of $M$ is that:
-\begin{equation*}
-\begin{aligned}
-	Ma_0 = Ma_1 \Rightarrow\,& M(a_0-a_1) = 0 \\
-	\Rightarrow\,& M^{-1}M(a_0-a_1) = M^{-1}0 \\
-	\Rightarrow\,& a_1-a_0 = 0\\
-	\Rightarrow\,& a_1=a_0\\
-\end{aligned}
-\end{equation*}
+% This isn't how h is defined, likely a hang-over from an old definition.
+%
+%\subsection{Uniqueness}
+%A useful consequence of the invertibility of $M$ is that:
+%\begin{equation*}
+%\begin{aligned}
+%	Ma_0 = Ma_1 \Rightarrow\,& M(a_0-a_1) = 0 \\
+%	\Rightarrow\,& M^{-1}M(a_0-a_1) = M^{-1}0 \\
+%	\Rightarrow\,& a_1-a_0 = 0\\
+%	\Rightarrow\,& a_1=a_0\\
+%\end{aligned}
+%\end{equation*}
+%
+%This uniqueness makes means that collision of two strings $s_0$ and $s_1$ is only possible if for all $j$:
+%\[f(s_0)_j=f(s_1)_j\]
+%Hence,
+%if for a given set of strings $S$ we choose $f_j$ such that this equality doesn't occur $h$ will be a perfect hash on $S$.
 
-This uniqueness makes means that collision of two strings $s_0$ and $s_1$ is only possible if for all $j$:
-\[f(s_0)_j=f(s_1)_j\]
-Hence,
-if for a given set of strings $S$ we choose $f$ such that this equality doesn't occur $f$ will be a perfect hash on $S$.
+\subsection{Collision}
+We want to know when two strings $s_0$ and $s_1$ collide.
+Assume at least one of $b_j$ is nonzero,
+else $h(s) = 0$ for all $s$.
+Then, 
+without loss of generality,
+Assume that $b_n\neq 0$.
+Then expansion of definitions shows that $h(s_1)=h(s_0)$ if and only if:
+\[f(s_1)_n = f(s_0)_n+b_n^{-1}\sum_{j=1}^{n-1}b_j(f(s_0)_j+f(s_1)_j)\]
+If we assume that $f(s)_n$ has a uniform distribution,
+then the chance of colliding is $|GF(2^8)|^{-1} = 2^{-8}$.
 
-\subsection{Example $f$}
-liner and human names
-preprocessing/offsetting
+\subsection{Choice of $a_i$}
+Note that the example choice of $a_i$ makes $h$ as perfect minimal hash.
+But we can choose the values of $a_i$ for other functions too,
+for example classification.
+
+\begin{center}
+\begin{tabular}{|c|c|}
+	\hline
+	$s_i$ & $a_i$\\
+	\hline
+	Apple& 0\\
+	Orange& 1\\
+	Pear& 0\\
+	Lemon& 1\\
+	\hline
+\end{tabular}
+\end{center}
+$h(s)$ is now a boolean classification function that indicates whether or not the fruit is citrus of not.
+
+\subsection{Choice of $f_j$}
+The example choice of $f(s)_j$,
+where $f(s)_j$ is the $j$th character of $s$, has obvious shortcomings, consider the set:
+\[S = \{\text{APPLE},\text{APRICOT}\}]\]
+$M$ fails to be invertible because all string share the same first two characters and hence $M$ has a duplicate row. 
+\[
+M = \begin{bmatrix}
+	01&10\\
+	01&10\\
+\end{bmatrix}
+\]
+
+This is an unfortunately common problem to encounter when $S$ is composed of natural language strings.
+Not only do such strings contain patterns which cause an nonuniform distribution of characters,
+alternating constant and vowel clusters for example,
+but in many application the strings will share entire morphines at the beginning.
+\\
+
+For example, 
+imagine making a hash function in a parser that is meant to convert strings representing command to a jump table index.
+It is possible that multiple commands will start with "set\_" or "get\_".
+\\
+
+But duplication alone underestimates the size of the shortfall.
+For $M$ to be uninvertible only requires that some subset of rows is linearly dependent,
+which includes duplication,
+and makes a choice of $f(s)_j$ all the more important.
+\\
+
+The easiest way to avoid this problem is by not taking character directly from the beginning but instead starting in the middle and take differently sized steps.
+Consider the following set:
+\[S = \{\text{set\_APPLE},\,\text{set\_APRICOT},\,\text{get\_APPLE},\,\text{get\_APRICOT}\}\]
+In this case we take the $7$th and $9$th characters instead.
+\\
+
+This solution boils down to finding an $n$ dimensional array $\sigma$,
+such that when $f(s)_j$ is the $\sigma(j)$th character of $s$ the resulting $M$ is invertible.
+This search can be easily automated and done at whatever time $S$ is know,
+which for many application is compile time.

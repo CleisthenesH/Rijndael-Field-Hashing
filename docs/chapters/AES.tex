@@ -1,8 +1,166 @@
 % Copyright 2023 Kieran W Harvie. All rights reserved.
 
 \chapter{Advanced Encryption Standard}
-As alluded to in the introduction one use of the Rijndael field is the Advanced Encryption Standard.
+As alluded to in the introduction one use of the Rijndael field is the Advanced Encryption Standard (AES).
+AES has two types of components,
+the transforms and the key schedule.
+The transforms act on a 4 by 4 matrix of $GF(2^8)$ elements called the state:
+\[
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
+\]
+The key schedule takes an original cipher key and outputs round keys used by a transform:
+\[
+\begin{bmatrix}
+	k_{0,0}&k_{0,1}&k_{0,2}&k_{0,3}\\
+	k_{1,0}&k_{1,1}&k_{1,2}&k_{1,3}\\
+	k_{2,0}&k_{2,1}&k_{2,2}&k_{2,3}\\
+	k_{3,0}&k_{3,1}&k_{3,2}&k_{3,3}\\
+\end{bmatrix}
+\]
 
 The basis of AES is the Rijndael field and some matrix operations,
 meaning we inadvertently have all tools necessary to give an overview.
 Not sure I will implment this in C.
+
+\section{Rijndael S-box}
+The Rijndael S-box is the main source of non-linearlity in the AES and is used in both the key schedule and a transform.
+It's just a function that takes and returns an element of $GF(2^8)$,
+which is why the S stands for substitution.
+\\
+
+First,
+for non-zero input $m$,
+take the binary expansion of its reciprocal:
+\[m^{-1}=b_7b_6b_5b_4b_3b_2b_1b_0\]
+(When $m=0$ set all $b_n=0$).
+\\
+
+Then construct a new byte with the following affine transform,
+arithmetic is in $GF(2)$:
+\[
+\begin{bmatrix}
+b_0'\\ b_1'\\ b_2'\\ b_3'\\ b_4'\\ b_5'\\ b_6'\\ b_7'\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	1&0&0&0&1&1&1&1\\
+	1&1&0&0&0&1&1&1\\
+	1&1&1&0&0&0&1&1\\
+	1&1&1&1&0&0&0&1\\
+	1&1&1&1&1&0&0&0\\
+	0&1&1&1&1&1&0&0\\
+	0&0&1&1&1&1&1&0\\
+	0&0&0&1&1&1&1&1\\
+\end{bmatrix}
+\begin{bmatrix}
+b_0\\ b_1\\ b_2\\ b_3\\ b_4\\ b_5\\ b_6\\ b_7\\
+\end{bmatrix}
++
+\begin{bmatrix}
+1\\1\\0\\0\\0\\1\\1\\0\\
+\end{bmatrix}
+\]
+
+Finally,
+output the element with the binary expansion of:
+\[b_7'b_6'b_5'b_4'b_3'b_2'b_1'b_0'\]
+
+The Rijndael S-box is a one-to-one map so can easily and unambiguously be inverted by look-up.
+But for those interested,
+the inverse affine transform is given bellow:
+\[
+\begin{bmatrix}
+b_0\\ b_1\\ b_2\\ b_3\\ b_4\\ b_5\\ b_6\\ b_7\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+	0&0&1&0&0&1&0&1\\
+	1&0&0&1&0&0&1&0\\
+	0&1&0&0&1&0&0&1\\
+	1&0&1&0&0&1&0&0\\
+	0&1&0&1&0&0&1&0\\
+	0&0&1&0&1&0&0&1\\
+	1&0&0&1&0&1&0&0\\
+	0&1&0&0&1&0&1&0\\
+\end{bmatrix}
+\begin{bmatrix}
+b_0'\\ b_1'\\ b_2'\\ b_3'\\ b_4'\\ b_5'\\ b_6'\\ b_7'\\
+\end{bmatrix}
++
+\begin{bmatrix}
+1\\0\\1\\0\\0\\0\\0\\0\\
+\end{bmatrix}
+\]
+And you can invert the Rijndael S-box by applying this transform then reciprocating any non zero element.
+
+\section{Transforms}
+\subsubsection{SubBytes}
+The output of this SubBytes is a block where each element is substituted with the output of this process.
+
+\subsubsection{ShiftRows}
+\[
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,1}&m_{1,2}&m_{1,3}&m_{1,0}\\
+	m_{2,2}&m_{2,3}&m_{2,0}&m_{2,1}\\
+	m_{3,3}&m_{3,0}&m_{3,1}&m_{3,2}\\
+\end{bmatrix}
+\]
+\subsubsection{MixColumns}
+\[
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	2&3&1&1\\
+	1&2&3&1\\
+	1&1&2&3\\	
+	3&1&1&2\\
+\end{bmatrix}
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
+\]
+\subsubsection{AddRoundKey}
+\[
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
+\rightarrow
+\begin{bmatrix}
+	m_{0,0}&m_{0,1}&m_{0,2}&m_{0,3}\\
+	m_{1,0}&m_{1,1}&m_{1,2}&m_{1,3}\\
+	m_{2,0}&m_{2,1}&m_{2,2}&m_{2,3}\\
+	m_{3,0}&m_{3,1}&m_{3,2}&m_{3,3}\\
+\end{bmatrix}
++
+\begin{bmatrix}
+	k_{0,0}&k_{0,1}&k_{0,2}&k_{0,3}\\
+	k_{1,0}&k_{1,1}&k_{1,2}&k_{1,3}\\
+	k_{2,0}&k_{2,1}&k_{2,2}&k_{2,3}\\
+	k_{3,0}&k_{3,1}&k_{3,2}&k_{3,3}\\
+\end{bmatrix}
+\]
+\section{Key Schedule}

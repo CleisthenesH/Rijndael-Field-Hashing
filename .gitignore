@@ -2,5 +2,6 @@
 *.out
 *.aux
 *.toc
+*.pdf
 
 *.o
